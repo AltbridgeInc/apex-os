@@ -1,0 +1,132 @@
+# APEX-OS Portfolio Configuration
+# Set your portfolio parameters and risk management rules here
+
+# Portfolio Settings
+portfolio:
+  initial_value: 100000  # Starting portfolio value in USD
+  current_value: 100000  # Current portfolio value (updated by system)
+  currency: "USD"
+  account_type: "individual"  # individual, ira, 401k, etc.
+
+# Risk Management Settings
+risk:
+  # Position Sizing
+  risk_per_trade_pct: 1.5  # % of portfolio to risk per trade (1.0-2.0%)
+  max_risk_per_trade_pct: 2.0  # Absolute maximum (never exceed)
+  min_risk_per_trade_pct: 0.5  # Minimum (for low conviction)
+
+  # Position Limits
+  max_position_size_pct: 15  # Maximum % of portfolio in single position
+  min_position_size_pct: 3   # Minimum (smaller not worth tracking)
+  target_position_size_pct: 10  # Target size for standard conviction
+
+  # Portfolio Constraints
+  max_portfolio_heat_pct: 8  # Maximum total risk across all positions
+  target_portfolio_heat_pct: 6  # Target total risk exposure
+  min_cash_reserve_pct: 20  # Minimum cash to maintain
+  target_cash_reserve_pct: 25  # Target cash reserve
+
+  # Sector Limits
+  max_sector_exposure_pct: 50  # Maximum % in any one sector
+  target_sector_exposure_pct: 35  # Preferred max per sector
+
+  # Position Count
+  min_positions: 5   # Minimum for diversification
+  target_positions: 8  # Sweet spot (8-10)
+  max_positions: 15  # Maximum before over-diversification
+
+# Quality Gates
+gates:
+  gate_1_fundamental_min: 6.0  # Minimum fundamental score (0-10)
+  gate_1_technical_min: 7.0    # Minimum technical score (0-10)
+  gate_1_rr_min: 2.0           # Minimum risk/reward ratio
+  gate_2_enforce_limits: true   # Enforce all position limits
+  gate_3_require_stop: true     # Require stop loss immediately
+  gate_4_systematic_exit: true  # Exit must be systematic
+
+# Trading Preferences
+trading:
+  # Entry Preferences
+  preferred_entry_method: "limit"  # limit, market, scale_in
+  max_entry_chase_pct: 3  # Maximum % above ideal entry to chase
+  entry_patience_days: 3  # Days to wait at limit before considering market order
+
+  # Exit Preferences
+  use_scaling_out: true  # Use 3-target scaling strategy
+  target_1_rr: 2.0  # First target at 2:1 R:R
+  target_2_rr: 3.0  # Second target at 3:1 R:R
+  trail_pct: 20  # Trail stop % below high (15-20%)
+
+  # Stop Loss Preferences
+  preferred_stop_method: "technical"  # technical, atr, percentage
+  max_stop_distance_pct: 8  # Maximum stop distance from entry
+  stop_buffer_pct: 2  # Buffer below support to avoid stop hunts
+
+# Market Conditions Adjustments
+market_conditions:
+  # Adjust risk based on market volatility
+  vix_low_threshold: 15   # Below this = low volatility
+  vix_high_threshold: 25  # Above this = high volatility
+
+  # Risk adjustments
+  high_volatility_risk_reduction_pct: 50  # Reduce risk by 50% in high vol (1.5% → 0.75%)
+  bear_market_max_positions: 5  # Reduce position count in bear market
+  bear_market_cash_target_pct: 50  # Increase cash in bear market
+
+# Conviction-Based Adjustments
+conviction:
+  # High Conviction (scores 8-10)
+  high_conviction_risk_pct: 2.0  # Can risk up to 2%
+  high_conviction_position_pct: 12  # Can be 12-15% of portfolio
+
+  # Medium Conviction (scores 6-7)
+  medium_conviction_risk_pct: 1.5  # Standard 1.5%
+  medium_conviction_position_pct: 10  # Standard 8-12%
+
+  # Low Conviction (scores 5-6)
+  low_conviction_risk_pct: 1.0  # Reduced to 1%
+  low_conviction_position_pct: 7  # Smaller position 5-8%
+
+# Review Schedule
+reviews:
+  daily_monitoring: true  # Run /monitor-portfolio daily
+  position_review_week_2: true  # Quick check at week 2
+  position_review_week_4: true  # Mid-point review at week 4
+  position_review_week_8: true  # Time stop consideration at week 8
+  monthly_portfolio_review: true  # Full portfolio review monthly
+  quarterly_strategy_review: true  # Strategy review quarterly
+
+# Behavioral Controls
+behavioral:
+  # Circuit Breakers
+  max_daily_loss_pct: 3  # Stop trading if lose 3% in one day
+  consecutive_loss_limit: 3  # Reduce risk after 3 consecutive losses
+  loss_reduction_pct: 50  # Reduce risk by 50% after trigger
+
+  # Cooling Off Periods
+  cooloff_after_loss_hours: 24  # Wait 24h before re-entering after stop out
+  cooloff_after_big_win_hours: 24  # Wait 24h after big win (avoid overconfidence)
+
+  # Overtrading Prevention
+  max_trades_per_week: 3  # Don't overtrade
+  min_days_between_entries: 2  # Pace entries
+
+# Notifications & Alerts
+notifications:
+  alert_on_target_hit: true
+  alert_on_stop_hit: true
+  alert_on_thesis_falsified: true
+  alert_on_portfolio_heat_exceeded: true
+  alert_on_review_due: true
+  alert_on_sector_limit_exceeded: true
+
+# Notes
+notes: |
+  Adjust these settings based on your:
+  - Risk tolerance (conservative: 1%, moderate: 1.5%, aggressive: 2%)
+  - Portfolio size (larger portfolios can be more diversified)
+  - Experience level (beginners: lower risk, fewer positions)
+  - Market conditions (reduce risk in volatile/bear markets)
+  - Time availability (fewer positions if less time to monitor)
+
+  Review and update quarterly based on performance and changing circumstances.

@@ -1,0 +1,56 @@
+# APEX-OS Open Positions Registry
+# This file tracks all currently open positions
+# Updated by portfolio-monitor agent daily
+
+positions: []
+
+# Example format (once you have positions):
+#
+# positions:
+#   - ticker: AAPL
+#     name: "Apple Inc."
+#     entry_date: "2025-01-15"
+#     entry_price: 180.50
+#     shares: 250
+#     current_value: 45500  # Updated daily
+#     stop_loss: 172.00
+#     target_1: 190.00
+#     target_2: 194.00
+#     thesis_dir: "apex-os/analysis/2025-01-15-AAPL"
+#     status: "active"  # active, target1_hit, target2_hit, trailing
+#     days_held: 5
+#     unrealized_pnl: 1250
+#     unrealized_pnl_pct: 2.8
+#
+#   - ticker: MSFT
+#     name: "Microsoft Corporation"
+#     entry_date: "2025-01-10"
+#     entry_price: 420.00
+#     shares: 100
+#     current_value: 42800
+#     stop_loss: 405.00
+#     target_1: 442.00
+#     target_2: 456.00
+#     thesis_dir: "apex-os/analysis/2025-01-10-MSFT"
+#     status: "target1_hit"
+#     days_held: 10
+#     unrealized_pnl: 800
+#     unrealized_pnl_pct: 1.9
+
+# Portfolio Summary (updated daily):
+summary:
+  total_positions: 0
+  total_value: 0
+  total_unrealized_pnl: 0
+  total_unrealized_pnl_pct: 0.0
+  portfolio_heat_pct: 0.0
+  cash_reserve_pct: 100.0
+  last_updated: ""
+
+# Sector Allocation (updated daily):
+sectors: {}
+# Example:
+#  Technology: 45.0
+#  Healthcare: 25.0
+#  Finance: 15.0
+#  Cash: 15.0

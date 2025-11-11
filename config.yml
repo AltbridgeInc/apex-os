@@ -1,0 +1,116 @@
+# APEX-OS Configuration
+name: apex-os
+version: 0.1.0
+description: Advanced Portfolio Execution & Analysis Operating System - A systematic, agent-based framework for disciplined stock trading
+author: APEX-OS Contributors
+repository: https://github.com/yourusername/apex-os
+
+# Default Profile
+default_profile: default
+
+# Installation Paths
+install_path: ~/apex-os
+profiles_path: profiles
+
+# Framework Components
+agents:
+  count: 8
+  location: .claude/agents/apex-os
+  list:
+    - market-scanner
+    - fundamental-analyst
+    - technical-analyst
+    - risk-manager
+    - thesis-writer
+    - executor
+    - portfolio-monitor
+    - post-mortem-analyst
+
+commands:
+  count: 6
+  location: .claude/commands/apex-os
+  list:
+    - scan-market
+    - analyze-stock
+    - write-thesis
+    - plan-position
+    - execute-entry
+    - monitor-portfolio
+
+skills:
+  count: 16
+  location: .claude/skills
+  auto_compile: true
+  categories:
+    fundamental: 5
+    technical: 4
+    risk_management: 4
+    behavioral: 3
+
+principles:
+  count: 16
+  location: principles
+  categories:
+    - fundamental
+    - technical
+    - risk-management
+    - behavioral
+
+# Portfolio Management
+portfolio:
+  config_location: portfolio/portfolio-config.yaml
+  positions_location: portfolio/open-positions.yaml
+  default_risk_per_trade: 1.5%
+  max_risk_per_trade: 2.0%
+  max_portfolio_heat: 8.0%
+  min_cash_reserve: 20.0%
+
+# Workflow Directories
+workflow_directories:
+  - opportunities
+  - analysis
+  - positions
+  - reports
+
+# Quality Gates
+quality_gates:
+  gate_0:
+    name: Opportunity Screening
+    requirements:
+      - Basic criteria met
+  gate_1:
+    name: Analysis & Thesis Verification
+    requirements:
+      - Fundamental score >= 6
+      - Technical score >= 7
+      - Bull and bear cases developed
+      - Falsification criteria defined
+      - Risk-reward >= 2:1
+  gate_2:
+    name: Position Planning
+    requirements:
+      - Position < 15% of portfolio
+      - Risk <= 2% per trade
+      - Portfolio heat <= 8%
+      - Cash reserve >= 20%
+      - Stop loss <= 8% from entry
+  gate_3:
+    name: Entry Execution
+    requirements:
+      - Stop loss placed within 1 minute
+      - Stop confirmed active
+      - Entry within planned range
+  gate_4:
+    name: Exit Execution
+    requirements:
+      - Exit reason documented
+      - Systematic exit (not emotional)
+      - Thesis validity assessed
+
+# Documentation
+documentation:
+  readme: README.md
+  description: apex-os_description.md
+  changelog: CHANGELOG.md
+  contributing: .github/CONTRIBUTING.md
+  code_of_conduct: .github/CODE_OF_CONDUCT.md
