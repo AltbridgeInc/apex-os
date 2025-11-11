@@ -52,13 +52,55 @@ fi
 echo "📦 Copying APEX-OS files..."
 echo ""
 
-# Copy .claude directory (agents, commands, skills)
-if [ -d ".claude" ]; then
-    echo "⚠️  .claude directory already exists, skipping..."
+# Create .claude directory structure
+echo "📦 Installing .claude components..."
+mkdir -p .claude/commands
+mkdir -p .claude/agents
+mkdir -p .claude/skills
+
+# Install COMMANDS with flattening (apex-os/*.md → apex-os-*.md)
+echo "  Installing commands..."
+COMMANDS_INSTALLED=0
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/.claude/commands/apex-os" ]; then
+    for file in "$APEX_OS_DIR/profiles/$PROFILE/.claude/commands/apex-os"/*.md; do
+        if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            cp "$file" ".claude/commands/apex-os-$filename"
+            COMMANDS_INSTALLED=$((COMMANDS_INSTALLED + 1))
+        fi
+    done
+    echo "  ✅ Installed $COMMANDS_INSTALLED commands (as /apex-os-*)"
 else
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/.claude" .
-    echo "✅ Installed .claude/ (agents, commands, skills)"
+    echo "  ⚠️  No commands found"
 fi
+
+# Install AGENTS with flattening (apex-os/*.md → apex-os-*.md)
+echo "  Installing agents..."
+AGENTS_INSTALLED=0
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/.claude/agents/apex-os" ]; then
+    for file in "$APEX_OS_DIR/profiles/$PROFILE/.claude/agents/apex-os"/*.md; do
+        if [ -f "$file" ]; then
+            filename=$(basename "$file")
+            cp "$file" ".claude/agents/apex-os-$filename"
+            AGENTS_INSTALLED=$((AGENTS_INSTALLED + 1))
+        fi
+    done
+    echo "  ✅ Installed $AGENTS_INSTALLED agents"
+else
+    echo "  ⚠️  No agents found"
+fi
+
+# Install SKILLS (these don't need flattening)
+echo "  Installing skills..."
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/.claude/skills" ]; then
+    cp -r "$APEX_OS_DIR/profiles/$PROFILE/.claude/skills/"* .claude/skills/ 2>/dev/null || true
+    SKILLS_COUNT=$(find .claude/skills -name "*.skill.md" -type f | wc -l | tr -d ' ')
+    echo "  ✅ Installed $SKILLS_COUNT skills"
+else
+    echo "  ⚠️  No skills found"
+fi
+
+echo "✅ Installed .claude/ (agents, commands, skills)"
 
 # Copy principles directory
 if [ -d "principles" ]; then
@@ -111,12 +153,12 @@ echo "2. Open in Claude Code:"
 echo "   code ."
 echo ""
 echo "3. Start using APEX-OS:"
-echo "   /scan-market           # Find opportunities"
-echo "   /analyze-stock AAPL    # Analyze a stock"
-echo "   /write-thesis AAPL     # Create investment thesis"
-echo "   /plan-position AAPL    # Plan position size and risk"
-echo "   /execute-entry AAPL    # Execute entry"
-echo "   /monitor-portfolio     # Daily monitoring"
+echo "   /apex-os-scan-market           # Find opportunities"
+echo "   /apex-os-analyze-stock AAPL    # Analyze a stock"
+echo "   /apex-os-write-thesis AAPL     # Create investment thesis"
+echo "   /apex-os-plan-position AAPL    # Plan position size and risk"
+echo "   /apex-os-execute-entry AAPL    # Execute entry"
+echo "   /apex-os-monitor-portfolio     # Daily monitoring"
 echo ""
 echo "📚 Read README.md for complete documentation"
 echo ""
