@@ -22,7 +22,7 @@ if [ ! -d "$APEX_OS_DIR" ]; then
     echo "❌ Error: APEX-OS is not installed."
     echo ""
     echo "Please run the base installation first:"
-    echo "  curl -sSL https://raw.githubusercontent.com/yourusername/apex-os/main/scripts/base-install.sh | bash"
+    echo "  curl -sSL https://raw.githubusercontent.com/AltbridgeInc/apex-os/main/scripts/base-install.sh | bash"
     echo ""
     exit 1
 fi

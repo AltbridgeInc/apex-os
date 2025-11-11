@@ -10,7 +10,7 @@
 set -e
 
 APEX_OS_DIR="$HOME/apex-os"
-REPO_URL="https://github.com/yourusername/apex-os.git"
+REPO_URL="https://github.com/AltbridgeInc/apex-os.git"
 BRANCH="main"
 
 echo "🚀 APEX-OS Base Installation"
@@ -60,5 +60,5 @@ echo "4. Start using APEX-OS commands:"
 echo "   /scan-market"
 echo "   /analyze-stock AAPL"
 echo ""
-echo "📚 Documentation: https://github.com/yourusername/apex-os"
+echo "📚 Documentation: https://github.com/AltbridgeInc/apex-os"
 echo ""

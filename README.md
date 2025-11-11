@@ -29,7 +29,7 @@ APEX-OS uses a two-step installation process similar to Agent OS:
 Run this one-line command to install APEX-OS to `~/apex-os`:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/yourusername/apex-os/main/scripts/base-install.sh | bash
+curl -sSL https://raw.githubusercontent.com/AltbridgeInc/apex-os/main/scripts/base-install.sh | bash
 ```
 
 This clones the APEX-OS repository to your home directory. You only need to do this once.

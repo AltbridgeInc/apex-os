@@ -3,7 +3,7 @@ name: apex-os
 version: 0.1.0
 description: Advanced Portfolio Execution & Analysis Operating System - A systematic, agent-based framework for disciplined stock trading
 author: APEX-OS Contributors
-repository: https://github.com/yourusername/apex-os
+repository: https://github.com/AltbridgeInc/apex-os
 
 # Default Profile
 default_profile: default

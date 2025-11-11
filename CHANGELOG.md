@@ -128,4 +128,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**For detailed changes and updates, see the [GitHub Releases](https://github.com/yourusername/apex-os/releases) page.**
+**For detailed changes and updates, see the [GitHub Releases](https://github.com/AltbridgeInc/apex-os/releases) page.**
