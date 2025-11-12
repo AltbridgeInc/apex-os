@@ -1,5 +1,8 @@
 # APEX-OS .gitignore
 
+#agents-os
+agents-os
+
 # User-specific directories (should not be in repo)
 opportunities/
 analysis/
@@ -41,6 +44,7 @@ venv/
 ENV/
 env/
 .venv
+.env
 
 # IDEs
 .vscode/
