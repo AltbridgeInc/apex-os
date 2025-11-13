@@ -44,7 +44,7 @@ mkdir ~/my-trading && cd ~/my-trading
 ```
 
 This will:
-- Copy `.claude/` directory (8 agents, 6 commands, 16 skills)
+- Copy `profiles/default/` directory (8 agents, 6 commands, 16 skills)
 - Copy `principles/` directory (16 investment principles)
 - Copy `portfolio/` templates (configure for your needs)
 - Create workflow directories (`opportunities/`, `analysis/`, `positions/`, `reports/`)
@@ -213,7 +213,7 @@ Each agent has a specific role and operates independently:
 7. **portfolio-monitor** (yellow): Daily tracking, alerts on thesis changes
 8. **post-mortem-analyst** (pink): Learning, every trade reviewed
 
-**Agents in `.claude/agents/apex-os/`**
+**Agents in `profiles/default/agents/apex-os/`**
 
 ---
 
@@ -246,7 +246,7 @@ Knowledge encoded as principles, auto-loaded as skills:
 - `behavioral-loss-aversion-management`: Cut losses quickly, let winners run
 
 **Principles in `principles/` folder**
-**Auto-loaded skills in `.claude/skills/`**
+**Auto-loaded skills in `profiles/default/skills/`**
 
 ---
 
@@ -300,7 +300,7 @@ Gates prevent emotional override and enforce discipline:
 
 ```
 apex-os/
-├── .claude/
+├── profiles/default/
 │   ├── agents/apex-os/          # 8 specialized agent definitions
 │   ├── commands/apex-os/         # 6 slash command workflows
 │   └── skills/                   # 16 auto-loaded skills
@@ -519,9 +519,9 @@ Edit `portfolio/portfolio-config.yaml`:
 ## Getting Help
 
 ### Documentation
-- Read agent definitions in `.claude/agents/apex-os/`
+- Read agent definitions in `profiles/default/agents/apex-os/`
 - Read principles in `principles/`
-- Read command workflows in `.claude/commands/apex-os/`
+- Read command workflows in `profiles/default/commands/apex-os/`
 - Review `apex-os_description.md` for complete framework
 
 ### Learning Path

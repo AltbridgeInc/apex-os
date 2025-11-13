@@ -3,162 +3,132 @@
 # APEX-OS Project Installation Script
 # Installs APEX-OS to current directory
 #
-# Usage:
-#   cd ~/my-trading-workspace
-#   ~/apex-os/scripts/project-install.sh
-#
 
 set -e
 
 APEX_OS_DIR="$HOME/apex-os"
 PROFILE="default"
+PROJECT_DIR=$(pwd)
 
-echo "🚀 APEX-OS Project Installation"
-echo "================================"
+# Colors
+BLUE='\033[0;36m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+print_section() { echo -e "${BLUE}=== $1 ===${NC}"; }
+print_status() { echo -e "${BLUE}$1${NC}"; }
+print_error() { echo -e "${RED}✗ $1${NC}"; }
+print_success() { echo -e "${GREEN}✓ $1${NC}"; }
+print_warning() { echo -e "${YELLOW}⚠  $1${NC}"; }
+
+print_section "APEX-OS Project Installation"
 echo ""
 
 # Check if ~/apex-os exists
 if [ ! -d "$APEX_OS_DIR" ]; then
-    echo "❌ Error: APEX-OS is not installed."
+    print_error "APEX-OS is not installed."
     echo ""
     echo "Please run the base installation first:"
     echo "  curl -sSL https://raw.githubusercontent.com/AltbridgeInc/apex-os/main/scripts/base-install.sh | bash"
-    echo ""
     exit 1
 fi
 
-# Check if profile exists
-if [ ! -d "$APEX_OS_DIR/profiles/$PROFILE" ]; then
-    echo "❌ Error: Profile '$PROFILE' not found."
-    exit 1
-fi
-
-# Get current directory
-CURRENT_DIR=$(pwd)
-echo "📍 Installing APEX-OS to: $CURRENT_DIR"
+echo -e "📍 Installing APEX-OS to: ${YELLOW}$PROJECT_DIR${NC}"
 echo ""
 
-# Warning if directory is not empty
-if [ "$(ls -A $CURRENT_DIR)" ]; then
-    echo "⚠️  Warning: Current directory is not empty."
-    read -p "Continue installation? (y/n) " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "ℹ️  Installation cancelled."
-        exit 0
-    fi
-fi
-
-echo "📦 Copying APEX-OS files..."
+print_status "Installing APEX-OS components..."
 echo ""
 
-# Create .claude directory structure
-echo "📦 Installing .claude components..."
-mkdir -p .claude/commands
-mkdir -p .claude/agents
+# Create .claude directory structure (for Claude Code)
+print_status "Creating .claude directory structure..."
+mkdir -p .claude/agents/apex-os
+mkdir -p .claude/commands/apex-os
 mkdir -p .claude/skills
-
-# Install COMMANDS with flattening (apex-os/*.md → apex-os-*.md)
-echo "  Installing commands..."
-COMMANDS_INSTALLED=0
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/.claude/commands/apex-os" ]; then
-    for file in "$APEX_OS_DIR/profiles/$PROFILE/.claude/commands/apex-os"/*.md; do
-        if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            cp "$file" ".claude/commands/apex-os-$filename"
-            COMMANDS_INSTALLED=$((COMMANDS_INSTALLED + 1))
-        fi
-    done
-    echo "  ✅ Installed $COMMANDS_INSTALLED commands (as /apex-os-*)"
-else
-    echo "  ⚠️  No commands found"
-fi
-
-# Install AGENTS with flattening (apex-os/*.md → apex-os-*.md)
-echo "  Installing agents..."
-AGENTS_INSTALLED=0
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/.claude/agents/apex-os" ]; then
-    for file in "$APEX_OS_DIR/profiles/$PROFILE/.claude/agents/apex-os"/*.md; do
-        if [ -f "$file" ]; then
-            filename=$(basename "$file")
-            cp "$file" ".claude/agents/apex-os-$filename"
-            AGENTS_INSTALLED=$((AGENTS_INSTALLED + 1))
-        fi
-    done
-    echo "  ✅ Installed $AGENTS_INSTALLED agents"
-else
-    echo "  ⚠️  No agents found"
-fi
-
-# Install SKILLS (these don't need flattening)
-echo "  Installing skills..."
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/.claude/skills" ]; then
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/.claude/skills/"* .claude/skills/ 2>/dev/null || true
-    SKILLS_COUNT=$(find .claude/skills -name "*.skill.md" -type f | wc -l | tr -d ' ')
-    echo "  ✅ Installed $SKILLS_COUNT skills"
-else
-    echo "  ⚠️  No skills found"
-fi
-
-echo "✅ Installed .claude/ (agents, commands, skills)"
-
-# Copy principles directory
-if [ -d "principles" ]; then
-    echo "⚠️  principles directory already exists, skipping..."
-else
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/principles" .
-    echo "✅ Installed principles/"
-fi
-
-# Copy portfolio directory (template)
-if [ -d "portfolio" ]; then
-    echo "⚠️  portfolio directory already exists, skipping..."
-else
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/portfolio" .
-    echo "✅ Installed portfolio/ (configure this for your needs)"
-fi
-
-# Create workflow directories
+echo "✓ Created .claude structure for Claude Code"
 echo ""
-echo "📁 Creating workflow directories..."
-mkdir -p opportunities
-mkdir -p analysis
-mkdir -p positions
-mkdir -p reports
-echo "✅ Created opportunities/, analysis/, positions/, reports/"
 
-# Copy documentation
-if [ -f "$APEX_OS_DIR/README.md" ]; then
-    cp "$APEX_OS_DIR/README.md" .
-    echo "✅ Copied README.md"
+# Install agents to .claude
+print_status "Installing agents to .claude..."
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/agents" ]; then
+    cp "$APEX_OS_DIR/profiles/$PROFILE/agents/"*.md .claude/agents/apex-os/ 2>/dev/null || true
+    AGENTS=$(ls -1 .claude/agents/apex-os/*.md 2>/dev/null | wc -l)
+    echo "✓ Installed $AGENTS agents to .claude/agents/apex-os/"
+fi
+echo ""
+
+# Install commands to .claude
+print_status "Installing commands to .claude..."
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/commands" ]; then
+    cp -r "$APEX_OS_DIR/profiles/$PROFILE/commands/"* .claude/commands/apex-os/ 2>/dev/null || true
+    COMMANDS=$(find .claude/commands/apex-os -name "*.md" 2>/dev/null | wc -l)
+    echo "✓ Installed $COMMANDS commands to .claude/commands/apex-os/"
+fi
+echo ""
+
+# Install skills to .claude
+print_status "Installing skills to .claude..."
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/skills" ]; then
+    cp -r "$APEX_OS_DIR/profiles/$PROFILE/skills/"* .claude/skills/ 2>/dev/null || true
+    SKILLS=$(ls -1d .claude/skills/*/ 2>/dev/null | wc -l)
+    echo "✓ Installed $SKILLS skills to .claude/skills/"
+fi
+echo ""
+
+# Create apex-os meta folder (for trading-specific content)
+print_status "Creating apex-os meta folder..."
+mkdir -p apex-os
+echo "✓ Created apex-os/ folder"
+echo ""
+
+# Copy principles to apex-os folder
+if [ -d "$APEX_OS_DIR/profiles/$PROFILE/principles" ]; then
+    cp -r "$APEX_OS_DIR/profiles/$PROFILE/principles" apex-os/
+    echo "✓ Installed apex-os/principles/"
 fi
 
-if [ -f "$APEX_OS_DIR/apex-os_description.md" ]; then
-    cp "$APEX_OS_DIR/apex-os_description.md" .
-    echo "✅ Copied apex-os_description.md"
+# Create data directories in apex-os
+mkdir -p apex-os/data/fmp
+mkdir -p apex-os/data/youtube
+echo "✓ Created apex-os/data/ directories"
+
+# Create workflow directories in apex-os
+mkdir -p apex-os/opportunities
+mkdir -p apex-os/analysis
+mkdir -p apex-os/positions
+mkdir -p apex-os/reports
+echo "✓ Created apex-os workflow directories"
+
+# Copy FMP scripts to apex-os
+if [ -d "$APEX_OS_DIR/scripts/data-fetching/fmp" ]; then
+    mkdir -p apex-os/scripts/data-fetching/fmp
+    cp "$APEX_OS_DIR/scripts/data-fetching/fmp/"* apex-os/scripts/data-fetching/fmp/ 2>/dev/null || true
+    chmod +x apex-os/scripts/data-fetching/fmp/*.sh 2>/dev/null || true
+    FMP_SCRIPTS=$(ls -1 apex-os/scripts/data-fetching/fmp/*.sh 2>/dev/null | wc -l)
+    echo "✓ Installed $FMP_SCRIPTS FMP scripts to apex-os/scripts/"
+fi
+
+# Copy config to apex-os
+if [ -f "$APEX_OS_DIR/config.yml" ]; then
+    cp "$APEX_OS_DIR/config.yml" apex-os/
+    echo "✓ Copied config.yml to apex-os/"
 fi
 
 echo ""
-echo "✨ APEX-OS installation complete!"
+print_success "APEX-OS installation complete!"
 echo ""
-echo "📋 Next steps:"
+echo -e "${GREEN}Installation Summary:${NC}"
+echo -e "  Agents: ${YELLOW}$AGENTS${NC} (.claude/agents/apex-os/)"
+echo -e "  Commands: ${YELLOW}$COMMANDS${NC} (.claude/commands/apex-os/)"
+echo -e "  Skills: ${YELLOW}$SKILLS${NC} (.claude/skills/)"
+echo -e "  FMP Scripts: ${YELLOW}$FMP_SCRIPTS${NC} (apex-os/scripts/)"
 echo ""
-echo "1. Configure your portfolio:"
-echo "   Edit portfolio/portfolio-config.yaml"
-echo "   - Set your portfolio value"
-echo "   - Choose risk per trade (1-2%)"
-echo "   - Adjust position limits"
+echo -e "${GREEN}Structure:${NC}"
+echo -e "  .claude/          ${YELLOW}# Claude Code reads from here${NC}"
+echo -e "  apex-os/          ${YELLOW}# Your trading workspace${NC}"
 echo ""
-echo "2. Open in Claude Code:"
-echo "   code ."
-echo ""
-echo "3. Start using APEX-OS:"
-echo "   /apex-os-scan-market           # Find opportunities"
-echo "   /apex-os-analyze-stock AAPL    # Analyze a stock"
-echo "   /apex-os-write-thesis AAPL     # Create investment thesis"
-echo "   /apex-os-plan-position AAPL    # Plan position size and risk"
-echo "   /apex-os-execute-entry AAPL    # Execute entry"
-echo "   /apex-os-monitor-portfolio     # Daily monitoring"
-echo ""
-echo "📚 Read README.md for complete documentation"
+echo -e "${GREEN}Next steps:${NC}"
+echo -e "  1. Set FMP API key: ${YELLOW}export FMP_API_KEY='your-key'${NC}"
+echo -e "  2. Use commands: ${YELLOW}/scan-market, /analyze-stock AAPL${NC}"
 echo ""

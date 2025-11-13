@@ -12,11 +12,11 @@ default_profile: default
 install_path: ~/apex-os
 profiles_path: profiles
 
-# Framework Components
+# Framework Components (Updated to profiles/default/ pattern)
 agents:
-  count: 8
-  location: .claude/agents/apex-os
-  list:
+  count: 16
+  location: profiles/default/agents
+  apex_os_agents:
     - market-scanner
     - fundamental-analyst
     - technical-analyst
@@ -25,27 +25,73 @@ agents:
     - executor
     - portfolio-monitor
     - post-mortem-analyst
+  agent_os_agents:
+    - spec-writer
+    - spec-shaper
+    - product-planner
+    - tasks-list-creator
+    - implementer
+    - implementation-verifier
 
 commands:
-  count: 6
-  location: .claude/commands/apex-os
-  list:
+  count: 12
+  location: profiles/default/commands
+  apex_os_commands:
     - scan-market
     - analyze-stock
     - write-thesis
     - plan-position
     - execute-entry
     - monitor-portfolio
+  agent_os_commands:
+    - orchestrate-tasks
+    - write-spec
+    - shape-spec
+    - plan-product
+    - create-tasks
+    - implement-tasks
 
 skills:
   count: 16
-  location: .claude/skills
+  location: profiles/default/skills
   auto_compile: true
   categories:
     fundamental: 5
     technical: 4
     risk_management: 4
     behavioral: 3
+  list:
+    - financial-health-analysis
+    - valuation-analysis
+    - growth-analysis
+    - quality-analysis
+    - moat-analysis
+    - price-action-analysis
+    - volume-analysis
+    - momentum-analysis
+    - trend-analysis
+    - position-sizing
+    - stop-loss-management
+    - portfolio-risk-assessment
+    - risk-reward-evaluation
+    - market-sentiment-analysis
+    - bias-detection
+    - discipline-enforcement
+
+# Data Integration
+data:
+  fmp:
+    location: data/fmp
+    scripts: scripts/data-fetching/fmp
+    file_naming:
+      earnings: "{symbol}-earnings-{year}-{period}.txt"
+      statements: "{symbol}-{type}-{year}-{period}.json"
+      news: "{symbol}-news-{date}.md"
+  youtube:
+    location: data/youtube
+    scripts: scripts/data-fetching/youtube
+    file_naming: "{symbol}-youtube-{video-id}-transcript.txt"
+    status: "structure_prepared_implementation_deferred"
 
 principles:
   count: 16
@@ -114,3 +160,9 @@ documentation:
   changelog: CHANGELOG.md
   contributing: .github/CONTRIBUTING.md
   code_of_conduct: .github/CODE_OF_CONDUCT.md
+
+# Agent-OS Compatibility
+compatibility:
+  agent_os_version: "compatible"
+  structural_pattern: "profiles/default/"
+  installation_pattern: "agent-os"
