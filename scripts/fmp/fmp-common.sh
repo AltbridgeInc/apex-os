@@ -6,6 +6,12 @@ set -euo pipefail
 # Load FMP API key from .env file
 # Returns: 0 if successful, 1 if key not found
 load_api_key() {
+    # Check if FMP_API_KEY is already set in environment
+    if [[ -n "${FMP_API_KEY:-}" ]]; then
+        export FMP_API_KEY
+        return 0
+    fi
+
     local env_file="/Users/nazymazimbayev/apex-os-1/.env"
 
     if [[ ! -f "$env_file" ]]; then
