@@ -6,9 +6,16 @@
 
 set -e
 
-APEX_OS_DIR="$HOME/apex-os"
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BASE_DIR="$HOME/apex-os"
+PROJECT_DIR="$(pwd)"
 PROFILE="default"
-PROJECT_DIR=$(pwd)
+DRY_RUN="false"
+VERBOSE="false"
+
+# Source common functions for compilation
+source "$SCRIPT_DIR/common-functions.sh"
 
 # Colors
 BLUE='\033[0;36m'
@@ -27,7 +34,7 @@ print_section "APEX-OS Project Installation"
 echo ""
 
 # Check if ~/apex-os exists
-if [ ! -d "$APEX_OS_DIR" ]; then
+if [ ! -d "$BASE_DIR" ]; then
     print_error "APEX-OS is not installed."
     echo ""
     echo "Please run the base installation first:"
@@ -41,6 +48,12 @@ echo ""
 print_status "Installing APEX-OS components..."
 echo ""
 
+# Set effective configuration flags (needed for compilation)
+EFFECTIVE_PROFILE="$PROFILE"
+EFFECTIVE_CLAUDE_CODE_COMMANDS="true"
+EFFECTIVE_USE_CLAUDE_CODE_SUBAGENTS="true"
+EFFECTIVE_STANDARDS_AS_CLAUDE_CODE_SKILLS="true"
+
 # Create .claude directory structure (for Claude Code)
 print_status "Creating .claude directory structure..."
 mkdir -p .claude/agents/apex-os
@@ -49,28 +62,48 @@ mkdir -p .claude/skills
 echo "✓ Created .claude structure for Claude Code"
 echo ""
 
-# Install agents to .claude
-print_status "Installing agents to .claude..."
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/agents" ]; then
-    cp "$APEX_OS_DIR/profiles/$PROFILE/agents/"*.md .claude/agents/apex-os/ 2>/dev/null || true
-    AGENTS=$(ls -1 .claude/agents/apex-os/*.md 2>/dev/null | wc -l)
-    echo "✓ Installed $AGENTS agents to .claude/agents/apex-os/"
+# Install and compile agents to .claude
+print_status "Installing and compiling agents to .claude..."
+AGENTS=0
+if [ -d "$BASE_DIR/profiles/$PROFILE/agents" ]; then
+    # Iterate through agent files and compile each one
+    for source_file in "$BASE_DIR/profiles/$PROFILE/agents/"*.md; do
+        if [ -f "$source_file" ]; then
+            filename=$(basename "$source_file")
+            dest_file="$PROJECT_DIR/.claude/agents/apex-os/$filename"
+
+            # Compile agent with workflow injection
+            compile_agent "$source_file" "$dest_file" "$BASE_DIR" "$EFFECTIVE_PROFILE" ""
+            ((AGENTS++)) || true
+        fi
+    done
+    echo "✓ Compiled and installed $AGENTS agents to .claude/agents/apex-os/"
 fi
 echo ""
 
-# Install commands to .claude
-print_status "Installing commands to .claude..."
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/commands" ]; then
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/commands/"* .claude/commands/apex-os/ 2>/dev/null || true
-    COMMANDS=$(find .claude/commands/apex-os -name "*.md" 2>/dev/null | wc -l)
-    echo "✓ Installed $COMMANDS commands to .claude/commands/apex-os/"
+# Install and compile commands to .claude
+print_status "Installing and compiling commands to .claude..."
+COMMANDS=0
+if [ -d "$BASE_DIR/profiles/$PROFILE/commands" ]; then
+    # Iterate through command files and compile each one
+    for source_file in "$BASE_DIR/profiles/$PROFILE/commands/"*.md; do
+        if [ -f "$source_file" ]; then
+            filename=$(basename "$source_file")
+            dest_file="$PROJECT_DIR/.claude/commands/apex-os/$filename"
+
+            # Compile command with workflow injection
+            compile_command "$source_file" "$dest_file" "$BASE_DIR" "$EFFECTIVE_PROFILE" ""
+            ((COMMANDS++)) || true
+        fi
+    done
+    echo "✓ Compiled and installed $COMMANDS commands to .claude/commands/apex-os/"
 fi
 echo ""
 
-# Install skills to .claude
+# Install skills to .claude (skills don't need compilation)
 print_status "Installing skills to .claude..."
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/skills" ]; then
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/skills/"* .claude/skills/ 2>/dev/null || true
+if [ -d "$BASE_DIR/profiles/$PROFILE/skills" ]; then
+    cp -r "$BASE_DIR/profiles/$PROFILE/skills/"* .claude/skills/ 2>/dev/null || true
     SKILLS=$(ls -1d .claude/skills/*/ 2>/dev/null | wc -l)
     echo "✓ Installed $SKILLS skills to .claude/skills/"
 fi
@@ -82,36 +115,23 @@ mkdir -p apex-os
 echo "✓ Created apex-os/ folder"
 echo ""
 
-# Copy principles to apex-os folder
-if [ -d "$APEX_OS_DIR/profiles/$PROFILE/principles" ]; then
-    cp -r "$APEX_OS_DIR/profiles/$PROFILE/principles" apex-os/
-    echo "✓ Installed apex-os/principles/"
+# Copy standards to apex-os folder
+if [ -d "$BASE_DIR/profiles/$PROFILE/standards" ]; then
+    cp -r "$BASE_DIR/profiles/$PROFILE/standards" apex-os/
+    echo "✓ Installed apex-os/standards/"
 fi
 
-# Create data directories in apex-os
-mkdir -p apex-os/data/fmp
-mkdir -p apex-os/data/youtube
-echo "✓ Created apex-os/data/ directories"
-
-# Create workflow directories in apex-os
-mkdir -p apex-os/opportunities
-mkdir -p apex-os/analysis
-mkdir -p apex-os/positions
-mkdir -p apex-os/reports
-echo "✓ Created apex-os workflow directories"
-
-# Copy FMP scripts to apex-os
-if [ -d "$APEX_OS_DIR/scripts/data-fetching/fmp" ]; then
+# Copy FMP scripts to apex-os (needed by agents/workflows)
+if [ -d "$BASE_DIR/scripts/data-fetching/fmp" ]; then
     mkdir -p apex-os/scripts/data-fetching/fmp
-    cp "$APEX_OS_DIR/scripts/data-fetching/fmp/"* apex-os/scripts/data-fetching/fmp/ 2>/dev/null || true
+    cp "$BASE_DIR/scripts/data-fetching/fmp/"* apex-os/scripts/data-fetching/fmp/ 2>/dev/null || true
     chmod +x apex-os/scripts/data-fetching/fmp/*.sh 2>/dev/null || true
-    FMP_SCRIPTS=$(ls -1 apex-os/scripts/data-fetching/fmp/*.sh 2>/dev/null | wc -l)
-    echo "✓ Installed $FMP_SCRIPTS FMP scripts to apex-os/scripts/"
+    echo "✓ Installed FMP scripts to apex-os/scripts/"
 fi
 
 # Copy config to apex-os
-if [ -f "$APEX_OS_DIR/config.yml" ]; then
-    cp "$APEX_OS_DIR/config.yml" apex-os/
+if [ -f "$BASE_DIR/config.yml" ]; then
+    cp "$BASE_DIR/config.yml" apex-os/
     echo "✓ Copied config.yml to apex-os/"
 fi
 
@@ -119,10 +139,10 @@ echo ""
 print_success "APEX-OS installation complete!"
 echo ""
 echo -e "${GREEN}Installation Summary:${NC}"
-echo -e "  Agents: ${YELLOW}$AGENTS${NC} (.claude/agents/apex-os/)"
-echo -e "  Commands: ${YELLOW}$COMMANDS${NC} (.claude/commands/apex-os/)"
+echo -e "  Agents: ${YELLOW}$AGENTS${NC} (compiled with workflows) (.claude/agents/apex-os/)"
+echo -e "  Commands: ${YELLOW}$COMMANDS${NC} (compiled with workflows) (.claude/commands/apex-os/)"
 echo -e "  Skills: ${YELLOW}$SKILLS${NC} (.claude/skills/)"
-echo -e "  FMP Scripts: ${YELLOW}$FMP_SCRIPTS${NC} (apex-os/scripts/)"
+echo -e "  Standards: ${YELLOW}apex-os/standards/${NC}"
 echo ""
 echo -e "${GREEN}Structure:${NC}"
 echo -e "  .claude/          ${YELLOW}# Claude Code reads from here${NC}"

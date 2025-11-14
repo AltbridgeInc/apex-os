@@ -61,22 +61,22 @@ skills:
     risk_management: 4
     behavioral: 3
   list:
-    - financial-health-analysis
-    - valuation-analysis
-    - growth-analysis
-    - quality-analysis
-    - moat-analysis
-    - price-action-analysis
-    - volume-analysis
-    - momentum-analysis
-    - trend-analysis
-    - position-sizing
-    - stop-loss-management
-    - portfolio-risk-assessment
-    - risk-reward-evaluation
-    - market-sentiment-analysis
-    - bias-detection
-    - discipline-enforcement
+    - fundamental-financial-health-analysis
+    - fundamental-valuation-analysis
+    - fundamental-growth-analysis
+    - fundamental-quality-analysis
+    - fundamental-moat-analysis
+    - technical-price-action-analysis
+    - technical-volume-analysis
+    - technical-momentum-analysis
+    - technical-trend-analysis
+    - risk-position-sizing
+    - risk-stop-loss-management
+    - risk-portfolio-risk-assessment
+    - risk-risk-reward-evaluation
+    - behavioral-market-sentiment-analysis
+    - behavioral-bias-detection
+    - behavioral-discipline-enforcement
 
 # Data Integration
 data:
