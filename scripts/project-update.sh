@@ -652,7 +652,7 @@ perform_update() {
     else
         print_success "APEX-OS has been successfully updated!"
         echo ""
-        echo -e "${GREEN}Visit the docs for guides on how to use APEX-OS: https://buildermethods.com/apex-os${NC}"
+        # echo -e "${GREEN}Visit the docs for guides on how to use APEX-OS: (docs coming soon)${NC}"
         echo ""
     fi
 }

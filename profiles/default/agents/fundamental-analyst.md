@@ -25,7 +25,7 @@ All financial data is fetched from Financial Modeling Prep API.
 ### Required Scripts
 
 ```bash
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/data-fetching/fmp"
 
 # Financial statements
 $SCRIPTS/fmp-financials.sh SYMBOL income|balance|cashflow [LIMIT] [PERIOD]
@@ -46,44 +46,70 @@ $SCRIPTS/fmp-earnings.sh SYMBOL calendar|surprises [LIMIT]
 $SCRIPTS/fmp-peers.sh SYMBOL --peers=SYM1,SYM2,... [--mode=MODE]
 ```
 
-### Standard Data Fetch Pattern
+### File-Based Data Fetching Pattern
+
+**IMPORTANT:** All FMP scripts now save data to files and return paths (not JSON content). This provides:
+- **99% token savings** (paths vs full JSON)
+- **Data persistence** for historical comparison
+- **Offline analysis** capability
+
+**Pattern:**
+1. Check if cached data exists
+2. Fetch if missing (script saves to `data/fmp/`)
+3. Scripts return path summary JSON
+4. Read files only when needed
 
 ```bash
 SYMBOL="AAPL"
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/data-fetching/fmp"
 
-# Fetch all required data (5-year annual history - long-term trends)
-profile=$(bash "$SCRIPTS/fmp-profile.sh" "$SYMBOL")
-income=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" income 5 annual)
-balance=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" balance 5 annual)
-cashflow=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" cashflow 5 annual)
-ratios=$(bash "$SCRIPTS/fmp-ratios.sh" "$SYMBOL" ratios 5)
-metrics=$(bash "$SCRIPTS/fmp-ratios.sh" "$SYMBOL" metrics 5)
-growth=$(bash "$SCRIPTS/fmp-ratios.sh" "$SYMBOL" growth 5)
+# 1. Check cache first
+echo "Checking for cached data..."
+cached_files=$(ls data/fmp/${SYMBOL,,}-* 2>/dev/null | wc -l)
+if [ "$cached_files" -gt 0 ]; then
+    echo "✓ Found $cached_files cached files for $SYMBOL"
+fi
 
-# Fetch quarterly data (last 8 quarters = 2 years - recent momentum) (NEW)
-income_quarterly=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" income 8 quarterly)
-balance_quarterly=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" balance 8 quarterly)
-cashflow_quarterly=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" cashflow 8 quarterly)
+# 2. Fetch financial statements (saves to data/fmp/)
+echo "Fetching financial data..."
+income_result=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" income annual 5)
+balance_result=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" balance annual 5)
+cashflow_result=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" cashflow annual 5)
 
-# Fetch forward-looking and earnings quality data
-analyst_estimates=$(bash "$SCRIPTS/fmp-analyst.sh" "$SYMBOL" estimates 8)
-analyst_ratings=$(bash "$SCRIPTS/fmp-analyst.sh" "$SYMBOL" ratings)
-earnings_history=$(bash "$SCRIPTS/fmp-earnings.sh" "$SYMBOL" calendar 12)
+# Extract file paths from results (NOT data!)
+income_file=$(echo "$income_result" | jq -r '.combined_file')
+balance_file=$(echo "$balance_result" | jq -r '.combined_file')
+cashflow_file=$(echo "$cashflow_result" | jq -r '.combined_file')
 
-# Parse with jq
-company_name=$(echo "$profile" | jq -r '.companyName')
-sector=$(echo "$profile" | jq -r '.sector')
-latest_revenue=$(echo "$income" | jq -r '.[0].revenue')
+echo "✓ Saved files:"
+echo "  Income: $(basename $income_file)"
+echo "  Balance: $(basename $balance_file)"
+echo "  Cash Flow: $(basename $cashflow_file)"
 
-# Parse analyst data
-next_year_revenue_est=$(echo "$analyst_estimates" | jq -r '.[1].estimatedRevenueAvg // "N/A"')
-next_year_eps_est=$(echo "$analyst_estimates" | jq -r '.[1].estimatedEpsAvg // "N/A"')
-analyst_rating=$(echo "$analyst_ratings" | jq -r '.[0].ratingRecommendation // "N/A"')
+# 3. Fetch quarterly data for recent trends
+quarterly_result=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" income quarterly 8)
+quarterly_file=$(echo "$quarterly_result" | jq -r '.combined_file')
 
-# Parse earnings surprises (filter historical with actual data)
-recent_earnings=$(echo "$earnings_history" | jq '[.[] | select(.eps != null)] | .[0:8]')
+# 4. Fetch earnings transcripts (if analyzing management commentary)
+transcript_result=$(bash "$SCRIPTS/fmp-transcript.sh" "$SYMBOL" 4)
+transcript_combined=$(echo "$transcript_result" | jq -r '.combined_file')
+
+# Process to readable text
+python3 "$SCRIPTS/process-transcript.py" "$transcript_combined"
+echo "✓ Created readable transcript files"
+
+# 5. Read data files ONLY when needed for analysis
+# Use Read tool to load file contents
+# Example: "Read the latest income statement"
+# Then you can parse with jq:
+# latest_revenue=$(cat "$income_file" | jq -r '.[0].revenue')
 ```
+
+**Token Efficiency Example:**
+- Fetching 4 transcripts (old way): ~44,000 tokens
+- Fetching 4 transcripts (new way): ~100 tokens for paths
+- Reading 1 when needed: ~11,000 tokens
+- **Total savings: 75%** when selective reading
 
 ## Workflow
 
@@ -107,7 +133,7 @@ Only if initial analysis passes (score ≥5).
 
 ```bash
 SYMBOL="$1"  # Passed as argument
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/data-fetching/fmp"
 
 income=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" income 5 annual)
 balance=$(bash "$SCRIPTS/fmp-financials.sh" "$SYMBOL" balance 5 annual)

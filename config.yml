@@ -12,47 +12,45 @@ default_profile: default
 install_path: ~/apex-os
 profiles_path: profiles
 
+# Agent-OS Runtime Configuration (required by shared tooling)
+base_install: false                        # This is NOT the base installation
+profile: default                           # Default profile
+claude_code_commands: true                 # Enable Claude Code commands
+agent_os_commands: false                   # Disable legacy Agent-OS commands
+use_claude_code_subagents: true            # Enable subagent compilation
+standards_as_claude_code_skills: true      # Enable principles as skills
+
+# Environment
+env_file: .env                             # Project-specific .env location
+data_dir: data                             # Data cache root
+
 # Framework Components (Updated to profiles/default/ pattern)
 agents:
-  count: 16
+  count: 8
   location: profiles/default/agents
-  apex_os_agents:
-    - market-scanner
-    - fundamental-analyst
-    - technical-analyst
-    - risk-manager
-    - thesis-writer
+  list:
     - executor
+    - fundamental-analyst
+    - market-scanner
     - portfolio-monitor
     - post-mortem-analyst
-  agent_os_agents:
-    - spec-writer
-    - spec-shaper
-    - product-planner
-    - tasks-list-creator
-    - implementer
-    - implementation-verifier
+    - risk-manager
+    - technical-analyst
+    - thesis-writer
 
 commands:
-  count: 12
+  count: 6
   location: profiles/default/commands
-  apex_os_commands:
-    - scan-market
+  list:
     - analyze-stock
-    - write-thesis
-    - plan-position
     - execute-entry
     - monitor-portfolio
-  agent_os_commands:
-    - orchestrate-tasks
-    - write-spec
-    - shape-spec
-    - plan-product
-    - create-tasks
-    - implement-tasks
+    - plan-position
+    - scan-market
+    - write-thesis
 
 skills:
-  count: 16
+  count: 17
   location: profiles/default/skills
   auto_compile: true
   categories:
@@ -60,6 +58,7 @@ skills:
     technical: 4
     risk_management: 4
     behavioral: 3
+    data: 1
   list:
     - fundamental-financial-health-analysis
     - fundamental-valuation-analysis
@@ -77,6 +76,7 @@ skills:
     - behavioral-market-sentiment-analysis
     - behavioral-bias-detection
     - behavioral-discipline-enforcement
+    - fmp
 
 # Data Integration
 data:

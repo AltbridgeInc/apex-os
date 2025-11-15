@@ -67,5 +67,52 @@ if [[ $count -eq 0 ]]; then
     exit 1
 fi
 
-# Return response (sorted by date, newest first)
-echo "$response" | jq 'sort_by(.date) | reverse'
+echo "Successfully fetched $count financial statement(s)" >&2
+
+# Sort by date, newest first
+sorted_response=$(echo "$response" | jq 'sort_by(.date) | reverse')
+
+# Save individual statement files and track paths
+saved_json_files=()
+data_dir=$(get_data_directory)
+
+while IFS= read -r statement; do
+    date=$(echo "$statement" | jq -r '.date // .calendarYear')
+    year=$(echo "$statement" | jq -r '.calendarYear // (.date | split("-")[0])')
+
+    # Determine period suffix
+    if [[ "$period" == "quarterly" ]]; then
+        quarter=$(echo "$statement" | jq -r '.period // "Q1"')
+        period_suffix="${year}-${quarter}"
+    else
+        period_suffix="${year}-annual"
+    fi
+
+    # Save statement JSON
+    filepath=$(save_json_data "$symbol" "${statement_type}-statement" "$period_suffix" "$statement")
+    saved_json_files+=("$filepath")
+
+    echo "Saved: $(basename $filepath)" >&2
+done < <(echo "$sorted_response" | jq -c '.[]')
+
+# Also save combined file
+combined_file=$(save_json_data "$symbol" "${statement_type}-statements" "combined-${period}" "$sorted_response")
+echo "Saved combined: $(basename $combined_file)" >&2
+
+# Log operation
+log_data_fetch "$symbol" "financials-${statement_type}" "success" "Fetched ${#saved_json_files[@]} ${period} periods"
+
+# Return summary JSON with file paths (not content!)
+cat <<EOF
+{
+  "success": true,
+  "symbol": "$symbol",
+  "statement_type": "$statement_type",
+  "period": "$period",
+  "count": ${#saved_json_files[@]},
+  "data_dir": "$data_dir",
+  "files": $(printf '%s\n' "${saved_json_files[@]}" | jq -R . | jq -s .),
+  "combined_file": "$combined_file",
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF

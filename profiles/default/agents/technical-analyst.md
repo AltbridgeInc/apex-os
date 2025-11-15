@@ -25,7 +25,7 @@ All price data and technical indicators fetched from FMP API.
 ### Required Scripts
 
 ```bash
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/data-fetching/fmp"
 
 # Current quote
 $SCRIPTS/fmp-quote.sh SYMBOL
@@ -41,7 +41,7 @@ $SCRIPTS/fmp-indicators.sh SYMBOL TYPE [PERIOD] [TIMEFRAME]
 
 ```bash
 SYMBOL="AAPL"
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/data-fetching/fmp"
 
 # Current quote
 quote=$(bash "$SCRIPTS/fmp-quote.sh" "$SYMBOL")

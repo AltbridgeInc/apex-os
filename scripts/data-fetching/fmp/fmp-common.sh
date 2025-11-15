@@ -4,12 +4,29 @@
 set -euo pipefail
 
 # Load FMP API key from .env file
+# Tries multiple locations in order of preference
 # Returns: 0 if successful, 1 if key not found
 load_api_key() {
-    local env_file="/Users/nazymazimbayev/apex-os-1/.env"
+    # Try multiple locations in order of preference
+    local env_candidates=(
+        "${PROJECT_DIR:-.}/apex-os/.env"             # apex-os folder (preferred)
+        "${PROJECT_DIR:-.}/.env"                    # Project directory (legacy)
+        "$(pwd)/apex-os/.env"                       # Current dir apex-os folder
+        "$(pwd)/.env"                                # Current directory (legacy)
+        "${APEX_OS_DIR:-$HOME/apex-os}/.env"        # Base installation
+        "$HOME/.config/apex-os/.env"                 # User config
+    )
 
-    if [[ ! -f "$env_file" ]]; then
-        format_error "missing_api_key" ".env file not found at $env_file"
+    local env_file=""
+    for candidate in "${env_candidates[@]}"; do
+        if [[ -f "$candidate" ]]; then
+            env_file="$candidate"
+            break
+        fi
+    done
+
+    if [[ -z "$env_file" ]]; then
+        format_error "missing_api_key" ".env file not found. Searched: ${env_candidates[*]}"
         return 1
     fi
 
@@ -19,7 +36,7 @@ load_api_key() {
     set -u
 
     if [[ -z "${FMP_API_KEY:-}" ]]; then
-        format_error "missing_api_key" "FMP_API_KEY not defined in .env"
+        format_error "missing_api_key" "FMP_API_KEY not defined in $env_file"
         return 1
     fi
 
@@ -225,6 +242,103 @@ fmp_api_call() {
     return 1
 }
 
+#############################################################################
+# File-Based Data Management Functions
+#############################################################################
+
+# Get data directory path (dynamically)
+# Returns: absolute path to apex-os/data/fmp/ directory
+get_data_directory() {
+    local workspace_root="${PROJECT_DIR:-.}"
+    local data_dir="${DATA_CACHE_DIR:-apex-os/data}/fmp"
+    local full_path="$workspace_root/$data_dir"
+
+    # Create if doesn't exist
+    mkdir -p "$full_path"
+
+    echo "$full_path"
+}
+
+# Generate standardized filename
+# Args:
+#   $1: symbol (e.g., AAPL)
+#   $2: data type (e.g., transcript, income-statement, news)
+#   $3: period (e.g., 2024-Q3, 2024-annual, 2024-11-14)
+#   $4: extension (default: json)
+# Returns: standardized filename
+get_standard_filename() {
+    local symbol=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    local data_type="$2"
+    local period="$3"
+    local ext="${4:-json}"
+
+    echo "${symbol}-${data_type}-${period}.${ext}"
+}
+
+# Save JSON data to file with standardized naming
+# Args:
+#   $1: symbol
+#   $2: data type
+#   $3: period
+#   $4: JSON content
+# Returns: absolute file path
+save_json_data() {
+    local symbol="$1"
+    local data_type="$2"
+    local period="$3"
+    local content="$4"
+
+    local data_dir=$(get_data_directory)
+    local filename=$(get_standard_filename "$symbol" "$data_type" "$period" "json")
+    local filepath="${data_dir}/${filename}"
+
+    echo "$content" > "$filepath"
+    echo "$filepath"
+}
+
+# Save text data to file
+# Args:
+#   $1: symbol
+#   $2: data type
+#   $3: period
+#   $4: text content
+#   $5: extension (default: txt)
+# Returns: absolute file path
+save_text_data() {
+    local symbol="$1"
+    local data_type="$2"
+    local period="$3"
+    local content="$4"
+    local ext="${5:-txt}"
+
+    local data_dir=$(get_data_directory)
+    local filename=$(get_standard_filename "$symbol" "$data_type" "$period" "$ext")
+    local filepath="${data_dir}/${filename}"
+
+    echo "$content" > "$filepath"
+    echo "$filepath"
+}
+
+# Log data fetch operation
+# Args:
+#   $1: symbol
+#   $2: endpoint
+#   $3: status (success/error)
+#   $4: details
+log_data_fetch() {
+    local symbol="$1"
+    local endpoint="$2"
+    local status="$3"
+    local details="$4"
+
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
+    local log_file="${PROJECT_DIR:-.}/apex-os/logs/data-fetch.log"
+
+    mkdir -p "$(dirname "$log_file")"
+
+    echo "${timestamp}|${symbol}|${endpoint}|${status}|${details}" >> "$log_file"
+}
+
 # Export functions for use by other scripts
 export -f load_api_key
 export -f fmp_api_call
@@ -232,3 +346,8 @@ export -f format_error
 export -f map_http_error
 export -f validate_symbol
 export -f check_rate_limit
+export -f get_data_directory
+export -f get_standard_filename
+export -f save_json_data
+export -f save_text_data
+export -f log_data_fetch

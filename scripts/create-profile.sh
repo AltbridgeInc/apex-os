@@ -316,7 +316,7 @@ main() {
     echo "  1. Customize standards, workflows, and configurations in your profile"
     echo "  2. Install APEX-OS in a project using this profile with: ~/apex-os/scripts/project-install.sh --profile $PROFILE_NAME"
     echo ""
-    echo -e "${GREEN}Visit the docs on customizing your profile: https://buildermethods.com/apex-os/profiles${NC}"
+    # echo -e "${GREEN}Visit the docs on customizing your profile: (docs coming soon)${NC}"
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════${NC}"
     echo ""

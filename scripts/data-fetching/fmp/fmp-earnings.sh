@@ -86,5 +86,31 @@ if [[ $count -eq 0 ]]; then
     exit 1
 fi
 
-# Return response (sorted by date, newest first)
-echo "$response" | jq 'sort_by(.date) | reverse'
+echo "Successfully fetched $count earnings record(s)" >&2
+
+# Sort by date, newest first
+sorted_response=$(echo "$response" | jq 'sort_by(.date) | reverse')
+
+# Save to file
+data_dir=$(get_data_directory)
+date_str=$(date +%Y-%m-%d)
+
+# Save earnings data with type-specific naming
+combined_file=$(save_json_data "$symbol" "earnings-${type}" "$date_str" "$sorted_response")
+echo "Saved: $(basename $combined_file)" >&2
+
+# Log operation
+log_data_fetch "$symbol" "earnings-${type}" "success" "Fetched ${count} records"
+
+# Return summary JSON with file path (not content!)
+cat <<EOF
+{
+  "success": true,
+  "symbol": "$symbol",
+  "type": "$type",
+  "count": ${count},
+  "data_dir": "$data_dir",
+  "file": "$combined_file",
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF

@@ -1122,7 +1122,7 @@ validate_base_installation() {
         print_error "APEX-OS base installation not found at ~/apex-os/"
         echo ""
         print_status "Please run the base installation first:"
-        echo "  curl -sSL https://raw.githubusercontent.com/buildermethods/apex-os/main/scripts/base-install.sh | bash"
+        echo "  curl -sSL https://raw.githubusercontent.com/AltbridgeInc/apex-os/main/scripts/base-install.sh | bash"
         echo ""
         exit 1
     fi

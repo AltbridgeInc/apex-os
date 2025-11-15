@@ -197,5 +197,38 @@ fi
 
 echo "Successfully fetched $final_count transcript(s)" >&2
 
-# Return array of transcripts
-echo "$output" | jq '.'
+# Save individual transcript files and track paths
+saved_json_files=()
+data_dir=$(get_data_directory)
+
+while IFS= read -r transcript; do
+    quarter=$(echo "$transcript" | jq -r '.quarter')
+    year=$(echo "$transcript" | jq -r '.year')
+    period="${year}-Q${quarter}"
+
+    # Save transcript JSON
+    filepath=$(save_json_data "$symbol" "transcript" "$period" "$transcript")
+    saved_json_files+=("$filepath")
+
+    echo "Saved: $(basename $filepath)" >&2
+done < <(echo "$output" | jq -c '.[]')
+
+# Also save combined file for convenience
+combined_file=$(save_json_data "$symbol" "transcripts" "combined" "$output")
+echo "Saved combined: $(basename $combined_file)" >&2
+
+# Log operation
+log_data_fetch "$symbol" "earnings-transcripts" "success" "Fetched ${#saved_json_files[@]} transcripts"
+
+# Return summary JSON with file paths (not content!)
+cat <<EOF
+{
+  "success": true,
+  "symbol": "$symbol",
+  "count": ${#saved_json_files[@]},
+  "data_dir": "$data_dir",
+  "files": $(printf '%s\n' "${saved_json_files[@]}" | jq -R . | jq -s .),
+  "combined_file": "$combined_file",
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF
