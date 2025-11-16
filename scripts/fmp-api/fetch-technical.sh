@@ -34,8 +34,8 @@ fetch_historical_intraday() {
         return 1
     fi
 
-    # Save to file
-    local filepath="$FMP_DATA_DIR/technical/$(get_filename "$symbol" "historical-${interval}")"
+    # Save to file (HIGHLY MUTABLE - intraday prices change constantly, use timestamped filename)
+    local filepath="$FMP_DATA_DIR/technical/$(get_filename_timestamped "$symbol" "historical-${interval}")"
     save_json "$filepath" "$response"
 
     local count=$(echo "$response" | jq 'length')
@@ -80,8 +80,17 @@ fetch_historical_daily() {
     # Extract historical data
     local historical=$(echo "$response" | jq '.historical // []')
 
-    # Save to file
-    local filepath="$FMP_DATA_DIR/technical/$(get_filename "$symbol" "historical-daily")"
+    # Save to file (IMMUTABLE for specific date range - include dates in filename)
+    local date_suffix=""
+    if [[ -n "$from" && -n "$to" ]]; then
+        date_suffix="${from}-to-${to}"
+    elif [[ -n "$from" ]]; then
+        date_suffix="from-${from}"
+    else
+        # No date range specified, use current year
+        date_suffix="$(date +%Y)"
+    fi
+    local filepath="$FMP_DATA_DIR/technical/$(get_filename "$symbol" "historical-daily-${date_suffix}")"
     save_json "$filepath" "$historical"
 
     local count=$(echo "$historical" | jq 'length')
@@ -132,8 +141,8 @@ fetch_indicator() {
         return 1
     fi
 
-    # Save to file
-    local filepath="$FMP_DATA_DIR/technical/$(get_filename "$symbol" "indicator-${indicator}-${period}-${timeframe}")"
+    # Save to file (SEMI-MUTABLE - indicators recalculate daily, use dated filename)
+    local filepath="$FMP_DATA_DIR/technical/$(get_filename_dated "$symbol" "indicator-${indicator}-${period}-${timeframe}")"
     save_json "$filepath" "$response"
 
     local count=$(echo "$response" | jq 'length')

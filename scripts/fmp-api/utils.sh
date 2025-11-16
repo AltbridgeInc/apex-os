@@ -213,7 +213,7 @@ fmp_api_call() {
 # Data Management
 #############################################################################
 
-# Get timestamped filename
+# Get filename (IMMUTABLE - no date/timestamp)
 get_filename() {
     local symbol="$1"
     local data_type="$2"
@@ -227,6 +227,47 @@ get_filename() {
     else
         echo "${symbol}-${data_type}.${ext}"
     fi
+}
+
+# Get filename with date (SEMI-MUTABLE - changes daily)
+get_filename_dated() {
+    local symbol="$1"
+    local data_type="$2"
+    local suffix="${3:-}"
+    local ext="${4:-json}"
+
+    symbol=$(echo "$symbol" | tr '[:upper:]' '[:lower:]')
+    local date=$(date +%Y-%m-%d)
+
+    if [[ -n "$suffix" ]]; then
+        echo "${symbol}-${data_type}-${suffix}-${date}.${ext}"
+    else
+        echo "${symbol}-${data_type}-${date}.${ext}"
+    fi
+}
+
+# Get filename with timestamp (HIGHLY MUTABLE - changes constantly)
+get_filename_timestamped() {
+    local symbol="$1"
+    local data_type="$2"
+    local suffix="${3:-}"
+    local ext="${4:-json}"
+
+    symbol=$(echo "$symbol" | tr '[:upper:]' '[:lower:]')
+    local timestamp=$(date +%Y%m%d-%H%M%S)
+
+    if [[ -n "$suffix" ]]; then
+        echo "${symbol}-${data_type}-${suffix}-${timestamp}.${ext}"
+    else
+        echo "${symbol}-${data_type}-${timestamp}.${ext}"
+    fi
+}
+
+# Get filename without symbol (for global data like market movers)
+get_filename_global_timestamped() {
+    local data_type="$1"
+    local timestamp=$(date +%Y%m%d-%H%M%S)
+    echo "${data_type}-${timestamp}.json"
 }
 
 # Save JSON data to file
@@ -296,6 +337,9 @@ export -f validate_period
 export -f check_rate_limit
 export -f fmp_api_call
 export -f get_filename
+export -f get_filename_dated
+export -f get_filename_timestamped
+export -f get_filename_global_timestamped
 export -f save_json
 export -f save_text
 export -f log_message

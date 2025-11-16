@@ -32,8 +32,8 @@ fetch_company_profile() {
         return 1
     fi
 
-    # Save to file
-    local filepath="$FMP_DATA_DIR/company/$(get_filename "$symbol" "profile")"
+    # Save to file (SEMI-MUTABLE - profile changes occasionally, use dated filename)
+    local filepath="$FMP_DATA_DIR/company/$(get_filename_dated "$symbol" "profile")"
     save_json "$filepath" "$profile"
 
     log_request "$symbol" "profile" "success" "$filepath"
@@ -78,9 +78,10 @@ search_company() {
         return 1
     fi
 
-    # Save results
+    # Save results (HIGHLY MUTABLE - search results change constantly, use timestamped filename)
     local query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-    local filepath="$FMP_DATA_DIR/company/search-${query_slug}.json"
+    local timestamp=$(date +%Y%m%d-%H%M%S)
+    local filepath="$FMP_DATA_DIR/company/search-${query_slug}-${timestamp}.json"
     save_json "$filepath" "$response"
 
     local count=$(echo "$response" | jq 'length')
@@ -164,8 +165,8 @@ fetch_stock_peers() {
         return 1
     fi
 
-    # Save to file
-    local filepath="$FMP_DATA_DIR/company/$(get_filename "$symbol" "peers")"
+    # Save to file (SEMI-MUTABLE - peers change occasionally, use dated filename)
+    local filepath="$FMP_DATA_DIR/company/$(get_filename_dated "$symbol" "peers")"
     save_json "$filepath" "$response"
 
     local peers=$(echo "$response" | jq -r '.peersList[]? // empty' | tr '\n' ',' | sed 's/,$//')

@@ -170,8 +170,8 @@ fetch_news() {
         return 1
     fi
 
-    # Save JSON
-    local timestamp=$(date +"%Y%m%d")
+    # Save JSON (HIGHLY MUTABLE - news published throughout the day, use full timestamp)
+    local timestamp=$(date +"%Y%m%d-%H%M%S")
     local json_file="$FMP_DATA_DIR/news/$(get_filename "$symbol" "news" "$timestamp")"
     save_json "$json_file" "$response"
 
@@ -235,7 +235,8 @@ fetch_press_releases() {
         return 1
     fi
 
-    local timestamp=$(date +"%Y%m%d")
+    # Save to file (HIGHLY MUTABLE - press releases published throughout the day, use full timestamp)
+    local timestamp=$(date +"%Y%m%d-%H%M%S")
     local filepath="$FMP_DATA_DIR/news/$(get_filename "$symbol" "press-releases" "$timestamp")"
     save_json "$filepath" "$response"
 

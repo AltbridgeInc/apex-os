@@ -34,7 +34,8 @@ fetch_analyst_estimates() {
         return 1
     fi
 
-    local filepath="$FMP_DATA_DIR/analyst/$(get_filename "$symbol" "estimates-${period}")"
+    # Save to file (SEMI-MUTABLE - analyst estimates change when new reports published, use dated filename)
+    local filepath="$FMP_DATA_DIR/analyst/$(get_filename_dated "$symbol" "estimates-${period}")"
     save_json "$filepath" "$response"
 
     log_request "$symbol" "analyst-estimates" "success" "$count periods"
@@ -77,7 +78,8 @@ fetch_stock_grades() {
         return 1
     fi
 
-    local filepath="$FMP_DATA_DIR/analyst/$(get_filename "$symbol" "grades")"
+    # Save to file (SEMI-MUTABLE - analyst grades/ratings change when new ratings published, use dated filename)
+    local filepath="$FMP_DATA_DIR/analyst/$(get_filename_dated "$symbol" "grades")"
     save_json "$filepath" "$response"
 
     log_request "$symbol" "stock-grades" "success" "$count grades"
@@ -118,7 +120,8 @@ fetch_price_targets() {
         return 1
     fi
 
-    local filepath="$FMP_DATA_DIR/analyst/$(get_filename "$symbol" "price-targets")"
+    # Save to file (SEMI-MUTABLE - price targets change when analysts update, use dated filename)
+    local filepath="$FMP_DATA_DIR/analyst/$(get_filename_dated "$symbol" "price-targets")"
     save_json "$filepath" "$response"
 
     log_request "$symbol" "price-targets" "success" "$count targets"
@@ -161,7 +164,8 @@ fetch_price_target_consensus() {
         return 1
     fi
 
-    local filepath="$FMP_DATA_DIR/analyst/$(get_filename "$symbol" "price-target-consensus")"
+    # Save to file (SEMI-MUTABLE - consensus changes when analysts update targets, use dated filename)
+    local filepath="$FMP_DATA_DIR/analyst/$(get_filename_dated "$symbol" "price-target-consensus")"
     save_json "$filepath" "$consensus"
 
     local target_high=$(echo "$consensus" | jq -r '.targetHigh // "N/A"')
@@ -210,7 +214,8 @@ fetch_upgrades_downgrades() {
         return 1
     fi
 
-    local filepath="$FMP_DATA_DIR/analyst/$(get_filename "$symbol" "upgrades-downgrades")"
+    # Save to file (SEMI-MUTABLE - upgrades/downgrades change when analysts publish, use dated filename)
+    local filepath="$FMP_DATA_DIR/analyst/$(get_filename_dated "$symbol" "upgrades-downgrades")"
     save_json "$filepath" "$response"
 
     log_request "$symbol" "upgrades-downgrades" "success" "$count records"
