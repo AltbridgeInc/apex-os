@@ -75,6 +75,9 @@ credentials/
 # Market data cache
 .market_data_cache/
 .financial_data/
+data/
+scripts/fmp-api/fmp-data/
+scripts/fmp-api/fmp-logs/
 
 # Jupyter Notebooks (if added later)
 .ipynb_checkpoints/
