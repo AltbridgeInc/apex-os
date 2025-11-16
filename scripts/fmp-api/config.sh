@@ -4,6 +4,27 @@
 
 set -euo pipefail
 
+# Get script directory for relative path resolution
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Load environment variables from .env file early
+# Try multiple locations in order of preference (relative to script location)
+for env_path in \
+    "$SCRIPT_DIR/../../.env" \
+    "$SCRIPT_DIR/../.env" \
+    "$SCRIPT_DIR/.env" \
+    "apex-os/.env" \
+    ".env" \
+    "${HOME}/.env" \
+    "${PROJECT_DIR:-.}/.env"; do
+    if [[ -f "$env_path" ]]; then
+        set +u
+        source "$env_path"
+        set -u
+        break
+    fi
+done
+
 # API Configuration
 export FMP_API_BASE_URL="${FMP_API_BASE_URL:-https://financialmodelingprep.com/api}"
 export FMP_API_VERSION="${FMP_API_VERSION:-v3}"
@@ -16,8 +37,14 @@ export FMP_TIMEOUT="${FMP_TIMEOUT:-30}"
 export FMP_MAX_RETRIES="${FMP_MAX_RETRIES:-3}"
 
 # Data Storage
-# Default to apex-os/data/fmp if it exists, otherwise use local ./fmp-data
-if [[ -d "../../data/fmp" ]]; then
+# Use FMP_CACHE_DIR from .env if set, otherwise auto-detect
+if [[ -n "${FMP_CACHE_DIR:-}" ]]; then
+    # Use directory from .env (apex-os/.env sets this to apex-os/data/fmp)
+    export FMP_DATA_DIR="${FMP_DATA_DIR:-$FMP_CACHE_DIR}"
+    # Extract parent for logs (apex-os/data -> apex-os/logs)
+    _data_parent=$(dirname "$FMP_CACHE_DIR")
+    export FMP_LOG_DIR="${FMP_LOG_DIR:-${_data_parent}/logs}"
+elif [[ -d "../../data/fmp" ]]; then
     # We're in apex-os/scripts/fmp-api, use parent data directory
     export FMP_DATA_DIR="${FMP_DATA_DIR:-../../data/fmp}"
     export FMP_LOG_DIR="${FMP_LOG_DIR:-../../logs}"
@@ -41,15 +68,22 @@ mkdir -p "$FMP_LOG_DIR"
 
 # Load API key from .env file
 load_api_key() {
+    # Skip if already loaded
+    if [[ -n "${FMP_API_KEY:-}" ]]; then
+        return 0
+    fi
+
     local env_file=""
 
-    # Try multiple locations in order of preference
+    # Try multiple locations in order of preference (relative to script location)
     local search_paths=(
-        "../../.env"           # apex-os/.env (from scripts/fmp-api/)
-        "../.env"              # apex-os/.env (alternative structure)
-        ".env"                 # Current directory
-        "${HOME}/.env"         # Home directory
-        "${PROJECT_DIR:-.}/.env"  # Project directory if set
+        "$SCRIPT_DIR/../../.env"   # apex-os/.env (from scripts/fmp-api/)
+        "$SCRIPT_DIR/../.env"      # apex-os/.env (alternative structure)
+        "$SCRIPT_DIR/.env"         # Current directory
+        "apex-os/.env"             # From workspace root
+        ".env"                     # Current working directory
+        "${HOME}/.env"             # Home directory
+        "${PROJECT_DIR:-.}/.env"   # Project directory if set
     )
 
     for path in "${search_paths[@]}"; do
