@@ -121,11 +121,11 @@ if [ -d "$BASE_DIR/profiles/$PROFILE/principles" ]; then
     echo "✓ Installed apex-os/principles/"
 fi
 
-# Copy FMP scripts to apex-os/scripts (agents reference apex-os/scripts/)
-if [ -d "$BASE_DIR/scripts/data-fetching/fmp" ]; then
-    mkdir -p apex-os/scripts/data-fetching/fmp
-    cp "$BASE_DIR/scripts/data-fetching/fmp/"* apex-os/scripts/data-fetching/fmp/ 2>/dev/null || true
-    chmod +x apex-os/scripts/data-fetching/fmp/*.sh 2>/dev/null || true
+# Copy FMP scripts to apex-os/scripts (agents reference apex-os/scripts/fmp-api/)
+if [ -d "$BASE_DIR/scripts/fmp-api" ]; then
+    mkdir -p apex-os/scripts/fmp-api
+    cp -r "$BASE_DIR/scripts/fmp-api/"* apex-os/scripts/fmp-api/ 2>/dev/null || true
+    chmod +x apex-os/scripts/fmp-api/*.sh 2>/dev/null || true
     echo "✓ Installed FMP scripts to apex-os/scripts/"
 fi
 

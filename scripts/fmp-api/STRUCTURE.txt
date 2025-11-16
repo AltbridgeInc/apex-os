@@ -1,0 +1,372 @@
+FMP API Scripts - Architecture & File Structure
+================================================
+
+DIRECTORY STRUCTURE
+-------------------
+
+apex-os/scripts/fmp-api/
+│
+├── Core Infrastructure
+│   ├── config.sh              # Configuration & environment setup
+│   ├── utils.sh               # Shared utilities, API calls, error handling
+│   └── fmp-fetch.sh           # Master orchestrator (main entry point)
+│
+├── Data Fetchers (Category-Based)
+│   ├── fetch-company.sh       # Company data (profile, search, peers)
+│   ├── fetch-financials.sh    # Financial statements & metrics
+│   ├── fetch-quotes.sh        # Stock quotes & prices
+│   ├── fetch-earnings.sh      # Earnings & news
+│   └── fetch-analyst.sh       # Analyst ratings & estimates
+│
+├── Documentation
+│   ├── README.md              # Complete usage guide
+│   ├── SUMMARY.md             # Implementation summary
+│   ├── STRUCTURE.txt          # This file
+│   └── .env.example           # Configuration template
+│
+└── Examples
+    └── examples.sh            # 8 working examples with colored output
+
+
+DATA FLOW ARCHITECTURE
+----------------------
+
+User/Agent
+    ↓
+fmp-fetch.sh (Master Orchestrator)
+    ↓
+Category Router (company/financials/quotes/earnings/analyst/bulk)
+    ↓
+Specialized Fetcher (fetch-*.sh)
+    ↓
+utils.sh (API call, error handling, validation)
+    ↓
+config.sh (load API key, settings)
+    ↓
+FMP API (https://financialmodelingprep.com/api)
+    ↓
+Response Processing (validate, parse, save)
+    ↓
+File Storage (fmp-data/*/) + JSON Response
+    ↓
+User/Agent
+
+
+COMPONENT RESPONSIBILITIES
+--------------------------
+
+┌─────────────────────────────────────────────────────────────────┐
+│ config.sh                                                        │
+├─────────────────────────────────────────────────────────────────┤
+│ • API base URL and version                                       │
+│ • Rate limit configuration                                       │
+│ • Timeout and retry settings                                     │
+│ • Data/log directory paths                                       │
+│ • Load .env file and export FMP_API_KEY                          │
+│ • Create directory structure                                     │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ utils.sh                                                         │
+├─────────────────────────────────────────────────────────────────┤
+│ Error Handling:                                                  │
+│ • format_error() - JSON error responses                          │
+│ • format_success() - JSON success responses                      │
+│ • map_http_error() - HTTP status code mapping                    │
+│                                                                  │
+│ Validation:                                                      │
+│ • validate_symbol() - Stock symbol format                        │
+│ • validate_period() - annual/quarter check                       │
+│                                                                  │
+│ API Operations:                                                  │
+│ • check_rate_limit() - Rate limiting with backoff               │
+│ • fmp_api_call() - Main API wrapper with retry logic            │
+│                                                                  │
+│ Data Management:                                                 │
+│ • get_filename() - Standardized naming                           │
+│ • save_json() - Save & validate JSON                             │
+│ • save_text() - Save text files                                  │
+│                                                                  │
+│ Logging:                                                         │
+│ • log_message() - Timestamped logs                               │
+│ • log_request() - Request tracking                               │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ fmp-fetch.sh (Master Orchestrator)                               │
+├─────────────────────────────────────────────────────────────────┤
+│ • Main entry point for all operations                            │
+│ • Category-based routing                                         │
+│ • Bulk operations (full-company, full-stock, everything)         │
+│ • Comprehensive help system                                      │
+│ • Usage examples                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ fetch-company.sh                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│ • fetch_company_profile() - Profile by symbol                    │
+│ • search_company() - Search by name/query                        │
+│ • fetch_stock_screener() - Filter stocks by criteria             │
+│ • fetch_stock_peers() - Get peer companies                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ fetch-financials.sh                                              │
+├─────────────────────────────────────────────────────────────────┤
+│ • fetch_financial_statement() - Income/balance/cashflow          │
+│ • fetch_financial_ratios() - Profitability, liquidity ratios     │
+│ • fetch_key_metrics() - P/E, P/B, ROE, etc.                      │
+│ • fetch_enterprise_values() - Enterprise value data              │
+│ • "all" action - Fetch all financial data at once                │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ fetch-quotes.sh                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│ • fetch_quote() - Real-time quote (full/short)                   │
+│ • fetch_batch_quotes() - Multiple symbols at once                │
+│ • fetch_historical_prices() - EOD historical data                │
+│ • fetch_intraday() - 1min to 4hour intervals                     │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ fetch-earnings.sh                                                │
+├─────────────────────────────────────────────────────────────────┤
+│ • fetch_earnings_transcript() - Full transcript text             │
+│ • fetch_transcript_dates() - Available dates                     │
+│ • fetch_earnings() - Earnings history                            │
+│ • fetch_news() - Stock news (JSON + Markdown)                    │
+│ • fetch_press_releases() - Press releases                        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ fetch-analyst.sh                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│ • fetch_analyst_estimates() - Revenue/EPS estimates              │
+│ • fetch_stock_grades() - Buy/hold/sell ratings                   │
+│ • fetch_price_targets() - Analyst price targets                  │
+│ • fetch_price_target_consensus() - Consensus targets             │
+│ • fetch_upgrades_downgrades() - Rating changes                   │
+│ • "all" action - Fetch all analyst data at once                  │
+└─────────────────────────────────────────────────────────────────┘
+
+
+DATA STORAGE STRUCTURE
+----------------------
+
+fmp-data/
+├── company/
+│   ├── aapl-profile.json
+│   ├── aapl-peers.json
+│   ├── search-tesla.json
+│   └── screener-20241116-123456.json
+│
+├── financials/
+│   ├── aapl-income-annual.json
+│   ├── aapl-income-2024.json
+│   ├── aapl-balance-annual.json
+│   ├── aapl-cashflow-annual.json
+│   ├── aapl-ratios-annual.json
+│   ├── aapl-metrics-annual.json
+│   └── aapl-enterprise-annual.json
+│
+├── quotes/
+│   ├── aapl-quote-20241116-123456.json
+│   └── batch-20241116-123456.json
+│
+├── historical/
+│   ├── aapl-historical-2024-01-01_2024-12-31.json
+│   └── aapl-intraday-5min-20241116.json
+│
+├── earnings/
+│   ├── aapl-transcript-2024-Q3.txt
+│   ├── aapl-transcript-dates.json
+│   └── aapl-earnings-history.json
+│
+├── news/
+│   ├── aapl-news-20241116.json
+│   ├── aapl-news-20241116.md
+│   └── aapl-press-releases-20241116.json
+│
+└── analyst/
+    ├── aapl-estimates-annual.json
+    ├── aapl-grades.json
+    ├── aapl-price-targets.json
+    ├── aapl-price-target-consensus.json
+    └── aapl-upgrades-downgrades.json
+
+
+LOGGING STRUCTURE
+-----------------
+
+fmp-logs/
+├── fmp-api.log                # Main application log
+│   Format: [TIMESTAMP] [LEVEL] MESSAGE
+│   Example: [2024-11-16T12:34:56Z] [INFO] Fetching profile for AAPL
+│
+├── requests.log               # API request tracking
+│   Format: TIMESTAMP|SYMBOL|ENDPOINT|STATUS|DETAILS
+│   Example: 2024-11-16T12:34:56Z|AAPL|profile|success|/path/to/file
+│
+└── rate_*.txt                 # Rate limiting tracking (auto-cleanup)
+    Temporary files for tracking requests per minute
+
+
+ERROR HANDLING FLOW
+--------------------
+
+API Call
+   ↓
+Validation (symbol, params)
+   ↓ (fail)
+   └──→ Return JSON error
+   ↓ (pass)
+Rate Limit Check
+   ↓ (approaching limit)
+   ├──→ Sleep 10s, continue
+   ↓
+HTTP Request (curl with timeout)
+   ↓ (network error)
+   ├──→ Retry (up to 3 times, exponential backoff)
+   ↓ (HTTP error)
+   ├──→ 429/500/503: Retry
+   ├──→ 400/401/403/404: Return error
+   ↓ (200 OK)
+Validate JSON Response
+   ↓ (invalid)
+   ├──→ Return JSON error
+   ↓ (valid)
+Save to File
+   ↓
+Return Success JSON
+
+
+USAGE PATTERNS
+--------------
+
+Pattern 1: Direct Fetcher Call
+  $ ./fetch-company.sh profile AAPL
+
+Pattern 2: Master Orchestrator
+  $ ./fmp-fetch.sh company profile AAPL
+
+Pattern 3: Bulk Operations
+  $ ./fmp-fetch.sh bulk everything AAPL
+
+Pattern 4: Agent Integration
+  result=$(./fmp-fetch.sh company profile AAPL)
+  file=$(echo "$result" | jq -r '.file')
+  company=$(jq -r '.companyName' "$file")
+
+
+API CATEGORIES MAPPING
+---------------------
+
+company      → /v3/profile, /v3/search, /v3/stock-screener, /v4/stock_peers
+financials   → /v3/income-statement, /v3/balance-sheet-statement, 
+               /v3/cash-flow-statement, /v3/ratios, /v3/key-metrics,
+               /v3/enterprise-values
+quotes       → /v3/quote, /v3/historical-price-full, /v3/historical-chart
+earnings     → /v3/earning_call_transcript, /v3/historical/earning_calendar,
+               /v3/stock_news, /v3/press-releases
+analyst      → /v3/analyst-estimates, /v3/grade, /v4/price-target,
+               /v4/price-target-consensus, /v4/upgrades-downgrades
+
+
+RATE LIMITING STRATEGY
+---------------------
+
+1. Track requests in /tmp/fmp_rate_YYYYMMDD_HHMM.txt
+2. Count requests in current minute window
+3. If approaching limit (240/250):
+   - Sleep 10 seconds
+   - Clear old tracking files
+   - Start new minute window
+4. Record each request with timestamp
+5. Auto-cleanup old tracking files (>2 minutes old)
+
+
+RETRY STRATEGY
+--------------
+
+Retryable Errors: 429 (rate limit), 500 (server error), 503 (unavailable)
+Non-Retryable: 400 (bad request), 401 (auth), 403 (forbidden), 404 (not found)
+
+Retry Logic:
+  Attempt 1: Immediate
+  Attempt 2: 2^1 = 2 second delay
+  Attempt 3: 2^2 = 4 second delay
+  Attempt 4: 2^3 = 8 second delay
+  
+  After 3 retries: Return error
+
+
+FILE NAMING CONVENTIONS
+-----------------------
+
+Pattern: {symbol}-{data-type}-{period/date}.{ext}
+
+Examples:
+  aapl-profile.json                    # Company profile
+  aapl-income-2024.json                # Single period financial
+  aapl-income-annual.json              # Combined periods
+  aapl-quote-20241116-123456.json      # Timestamped quote
+  aapl-news-20241116.md                # Date-based news
+  aapl-transcript-2024-Q3.txt          # Quarterly transcript
+  batch-20241116-123456.json           # Batch operation
+
+
+CONFIGURATION HIERARCHY
+-----------------------
+
+1. Environment variables (highest priority)
+2. .env file in project root
+3. .env file in current directory
+4. .env file in user home
+5. Default values in config.sh (lowest priority)
+
+
+JSON RESPONSE FORMAT
+--------------------
+
+Success Response:
+{
+  "success": true,
+  "symbol": "AAPL",
+  "data_type": "profile",
+  "file": "/path/to/aapl-profile.json",
+  "timestamp": "2024-11-16T12:34:56Z",
+  ... (additional context-specific fields)
+}
+
+Error Response:
+{
+  "success": false,
+  "error": {
+    "type": "rate_limit|invalid_symbol|http_error|...",
+    "message": "Descriptive error message",
+    "timestamp": "2024-11-16T12:34:56Z"
+  }
+}
+
+
+STATISTICS
+----------
+
+Total Files:           11
+Total Lines:           2,341
+Bash Scripts:          9 (.sh files)
+Documentation:         3 (README, SUMMARY, STRUCTURE)
+Configuration:         1 (.env.example)
+
+API Endpoints Covered: 50+
+Categories:            6
+Bulk Operations:       3
+Examples:              8
+
+Code Distribution:
+  Core (config + utils):       ~500 lines
+  Fetchers (5 scripts):        ~1,500 lines
+  Orchestrator:                ~350 lines
+  Examples & Docs:             ~500 lines

@@ -5,14 +5,16 @@ Use FMP for real-time price tracking of open positions.
 ### Batch Quote Pattern
 
 ```bash
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/fmp-api"
 
 # Read open positions and extract symbols
 positions_file="positions/open-positions.yaml"
 symbols=$(yq e '.positions[].symbol' "$positions_file" | paste -sd,)
 
 # Fetch all quotes in single API call
-quotes=$(bash "$SCRIPTS/fmp-quote.sh" "$symbols")
+quote_result=$(bash "$SCRIPTS/fmp-fetch.sh" quotes batch "$symbols")
+quote_file=$(echo "$quote_result" | jq -r '.filepath')
+quotes=$(cat "$quote_file")
 
 # Check for errors
 if echo "$quotes" | jq -e '.error' > /dev/null 2>&1; then
@@ -57,7 +59,7 @@ Run every trading day (or when requested).
 **Fetch Batch Quotes for All Open Positions**:
 
 ```bash
-SCRIPTS="scripts/data-fetching/fmp"
+SCRIPTS="apex-os/scripts/fmp-api"
 positions_file="positions/open-positions.yaml"
 
 # Extract symbols
@@ -69,7 +71,9 @@ if [[ -z "$symbols" ]]; then
 fi
 
 # Get batch quotes
-all_quotes=$(bash "$SCRIPTS/fmp-quote.sh" "$symbols")
+quote_result=$(bash "$SCRIPTS/fmp-fetch.sh" quotes batch "$symbols")
+quote_file=$(echo "$quote_result" | jq -r '.filepath')
+all_quotes=$(cat "$quote_file")
 
 # Validate
 if echo "$all_quotes" | jq -e '.error' > /dev/null 2>&1; then
@@ -262,7 +266,9 @@ if echo "$all_quotes" | jq -e '.error' > /dev/null 2>&1; then
     echo "Batch quote failed, retrying individual symbols..."
 
     echo "$symbols" | tr ',' '\n' | while read -r symbol; do
-        individual_quote=$(bash "$SCRIPTS/fmp-quote.sh" "$symbol")
+        result=$(bash "$SCRIPTS/fmp-fetch.sh" quotes quote "$symbol")
+        filepath=$(echo "$result" | jq -r '.filepath')
+        individual_quote=$(cat "$filepath")
 
         if echo "$individual_quote" | jq -e '.error' > /dev/null 2>&1; then
             echo "ERROR: Failed to fetch $symbol even individually"

@@ -82,7 +82,7 @@ skills:
 data:
   fmp:
     location: data/fmp
-    scripts: scripts/data-fetching/fmp
+    scripts: scripts/fmp-api
     file_naming:
       earnings: "{symbol}-earnings-{year}-{period}.txt"
       statements: "{symbol}-{type}-{year}-{period}.json"

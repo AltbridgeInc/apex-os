@@ -20,6 +20,36 @@ APEX-OS is a complete investment decision-making framework that:
 
 ---
 
+## Prerequisites
+
+Before installing APEX-OS, ensure you have these dependencies:
+
+**Required**:
+- `jq` - JSON processor (for parsing FMP API responses)
+- `curl` - Command-line HTTP client (for API requests)
+- `python3` - Python 3.x (for transcript processing)
+- `bash` - Bash shell (version 4.0+)
+
+**Install on Ubuntu/Debian**:
+```bash
+sudo apt-get update
+sudo apt-get install -y jq curl python3
+```
+
+**Install on macOS**:
+```bash
+brew install jq curl python3
+```
+
+**Verify installation**:
+```bash
+jq --version      # Should show jq-1.6 or higher
+curl --version    # Should show curl 7.x or higher
+python3 --version # Should show Python 3.x
+```
+
+---
+
 ## Installation
 
 APEX-OS uses a two-step installation process similar to Agent OS:
@@ -117,7 +147,7 @@ APEX-OS uses a **file-based data pattern** for optimal token efficiency and data
 │                     Data Flow Architecture                   │
 └─────────────────────────────────────────────────────────────┘
 
-1. FETCH (apex-os/scripts/)
+1. FETCH (apex-os/scripts/fmp-api/)
    ┌──────────────┐
    │ FMP API      │
    │ Request      │
@@ -125,23 +155,23 @@ APEX-OS uses a **file-based data pattern** for optimal token efficiency and data
           │
           ▼
    ┌──────────────────┐
-   │ fmp-transcript.sh│ ──┐
-   │ fmp-financials.sh│   │  Fetch data from FMP API
-   │ fmp-earnings.sh  │   │
+   │  fmp-fetch.sh    │ ──┐  Master orchestrator
+   │  (routes to:)    │   │  for all FMP operations
+   │  fetch-*.sh      │   │
    └──────────────────┘   │
           │                │
           ▼                │
    ┌──────────────────────────────────┐
-   │ CACHE to apex-os/data/fmp/       │
-   │ • aapl-transcript-2024-Q4.json   │
-   │ • aapl-income-statement-2024.json│
-   │ • aapl-earnings-calendar.json    │
+   │ CACHE to ./fmp-data/             │
+   │ • gainers-20241116.json          │
+   │ • aapl-income-annual.json        │
+   │ • aapl-quote.json                │
    └──────┬───────────────────────────┘
           │
           ▼
    ┌──────────────────┐
-   │ Return paths     │  ← 99% token savings
-   │ (not content)    │     (paths = 100 tokens vs 11,000+)
+   │ Return metadata  │  ← 99% token savings
+   │ with filepath    │     (metadata = 100 tokens vs 11,000+)
    └──────┬───────────┘
           │
           ▼
@@ -181,14 +211,15 @@ APEX-OS uses a **file-based data pattern** for optimal token efficiency and data
 
 **Old Pattern (Return JSON)**:
 ```bash
-./fmp-transcript.sh AAPL 4
+# Old approach: return full JSON
+curl "api.fmp.com/v3/income-statement/AAPL"
 # Returns 180KB of JSON = ~44,000 tokens
 ```
 
-**New Pattern (Return Paths)**:
+**New Pattern (Return Metadata + Filepath)**:
 ```bash
-./fmp-transcript.sh AAPL 4
-# Returns: {"files": [...], "combined": "path"} = ~100 tokens
+./fmp-fetch.sh financials income AAPL annual 4
+# Returns: {"success": true, "filepath": "...", "count": 4} = ~100 tokens
 # Agent reads 1 file when needed = ~11,000 tokens
 # Total: 11,100 tokens (75% savings!)
 ```
@@ -216,12 +247,17 @@ your-workspace/
     │   └── youtube/              # YouTube transcript cache
     │
     ├── scripts/                  # Data fetching infrastructure
-    │   └── data-fetching/
-    │       └── fmp/
-    │           ├── fmp-common.sh      # Shared functions
-    │           ├── fmp-transcript.sh  # Earnings transcripts
-    │           ├── fmp-financials.sh  # Financial statements
-    │           └── process-transcript.py  # JSON → text
+    │   └── fmp-api/
+    │       ├── fmp-fetch.sh          # Master orchestrator
+    │       ├── fetch-company.sh      # Company data
+    │       ├── fetch-financials.sh   # Financial statements
+    │       ├── fetch-quotes.sh       # Stock quotes
+    │       ├── fetch-earnings.sh     # Earnings data
+    │       ├── fetch-analyst.sh      # Analyst data
+    │       ├── fetch-market-movers.sh # Market movers
+    │       ├── fetch-technical.sh    # Technical indicators
+    │       ├── config.sh             # Configuration
+    │       └── utils.sh              # Utilities
     │
     ├── analysis/                 # References cached data
     ├── theses/                   # References cached data
@@ -247,20 +283,18 @@ ls apex-os/data/fmp/aapl-*
 
 **Step 2: Fetch Financial Data**
 ```bash
-cd apex-os/scripts/data-fetching/fmp
+cd apex-os/scripts/fmp-api
 
-# Fetch last 4 earnings transcripts
-./fmp-transcript.sh AAPL 4
-# Output: {"success": true, "files": [...], "combined_file": "..."}
-# Files saved to: apex-os/data/fmp/aapl-transcript-2024-Q*.json
+# Use the master script fmp-fetch.sh for all operations
+# Get company data
+./fmp-fetch.sh company profile AAPL
 
-# Process to readable text
-python3 process-transcript.py ../../../data/fmp/aapl-transcripts-combined.json
-# Creates: apex-os/data/fmp/aapl-earnings-2024-Q4.txt (for each quarter)
+# Get financial statements
+./fmp-fetch.sh financials income AAPL annual 4
+# Returns: {"success": true, "filepath": "...", "count": 4}
 
-# Fetch financial statements
-./fmp-financials.sh AAPL income annual 4
-# Saves to: apex-os/data/fmp/aapl-income-statement-2024-annual.json
+# Get earnings data
+./fmp-fetch.sh earnings calendar AAPL 20
 
 cd ../../../..
 ```
@@ -1127,14 +1161,18 @@ your-workspace/                    # Your trading workspace
     │   └── youtube/              # YouTube transcript cache
     │
     ├── scripts/                  # Data fetching infrastructure
-    │   ├── data-fetching/
-    │   │   └── fmp/
-    │   │       ├── fmp-common.sh     # Shared functions
-    │   │       ├── fmp-transcript.sh # Earnings transcripts
-    │   │       ├── fmp-financials.sh # Financial statements
-    │   │       ├── fmp-earnings.sh   # Earnings calendar
-    │   │       ├── process-transcript.py  # JSON → text processor
-    │   │       └── ...
+    │   ├── fmp-api/
+    │   │   ├── fmp-fetch.sh          # Master orchestrator
+    │   │   ├── fetch-company.sh      # Company data
+    │   │   ├── fetch-financials.sh   # Financial statements
+    │   │   ├── fetch-quotes.sh       # Stock quotes
+    │   │   ├── fetch-earnings.sh     # Earnings data
+    │   │   ├── fetch-analyst.sh      # Analyst data
+    │   │   ├── fetch-market-movers.sh # Market movers
+    │   │   ├── fetch-technical.sh    # Technical indicators
+    │   │   ├── config.sh             # Configuration
+    │   │   ├── utils.sh              # Utilities
+    │   │   └── ...
     │   └── test-fmp-integration.sh   # Integration test
     │
     ├── opportunities/            # Market scans (created on first use)
