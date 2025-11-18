@@ -171,7 +171,7 @@ echo ""
 # Create .env template if not exists
 if [ ! -f "apex-os/.env" ]; then
     print_status "Creating .env template..."
-    cat > apex-os/.env << 'ENVEOF'
+    cat > apex-os/.env << ENVEOF
 # APEX-OS Environment Configuration
 # Generated during installation
 
@@ -184,10 +184,10 @@ FMP_API_KEY=your_fmp_api_key_here
 # Get your API key at: https://console.cloud.google.com/apis/credentials
 YOUTUBE_API_KEY=your_youtube_api_key_here
 
-# Data Cache Settings
-DATA_CACHE_DIR=apex-os/data
-FMP_CACHE_DIR=apex-os/data/fmp
-YOUTUBE_CACHE_DIR=apex-os/data/youtube
+# Data Cache Settings (absolute paths)
+DATA_CACHE_DIR=$PROJECT_DIR/apex-os/data
+FMP_CACHE_DIR=$PROJECT_DIR/apex-os/data/fmp
+YOUTUBE_CACHE_DIR=$PROJECT_DIR/apex-os/data/youtube
 
 # Workspace Settings
 APEX_OS_WORKSPACE=apex-os
