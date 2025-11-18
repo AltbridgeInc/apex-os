@@ -50,7 +50,7 @@ commands:
     - write-thesis
 
 skills:
-  count: 17
+  count: 16
   location: profiles/default/skills
   auto_compile: true
   categories:
@@ -58,7 +58,6 @@ skills:
     technical: 4
     risk_management: 4
     behavioral: 3
-    data: 1
   list:
     - fundamental-financial-health-analysis
     - fundamental-valuation-analysis
@@ -76,7 +75,6 @@ skills:
     - behavioral-market-sentiment-analysis
     - behavioral-bias-detection
     - behavioral-discipline-enforcement
-    - fmp
 
 # Data Integration
 data:
@@ -89,9 +87,9 @@ data:
       news: "{symbol}-news-{date}.md"
   youtube:
     location: data/youtube
-    scripts: scripts/data-fetching/youtube
-    file_naming: "{symbol}-youtube-{video-id}-transcript.txt"
-    status: "structure_prepared_implementation_deferred"
+    scripts: scripts/youtube-api
+    file_naming: "youtube-{sanitized_title}-{video_id}-{lang}.txt"
+    status: "production_ready"
 
 principles:
   count: 16

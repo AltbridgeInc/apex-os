@@ -1,9 +1,6 @@
 # APEX-OS .gitignore
 
-#agents-os
-agents-os
-
-# User-specific directories (should not be in repo)
+# User-specific runtime directories (created during installation)
 opportunities/
 analysis/
 positions/
@@ -23,28 +20,17 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # Virtual environments
 venv/
 ENV/
 env/
 .venv
+
+# Environment and secrets
 .env
+.env.local
+.env.*.local
 
 # IDEs
 .vscode/
@@ -52,7 +38,15 @@ env/
 *.swp
 *.swo
 *~
+
+# OS-specific
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 # Logs
 *.log
@@ -62,15 +56,6 @@ logs/
 *.tmp
 *.temp
 .cache/
-.pytest_cache/
-
-# API keys and secrets
-.env
-.env.local
-.env.*.local
-secrets/
-api_keys/
-credentials/
 
 # Market data cache
 .market_data_cache/
@@ -79,54 +64,16 @@ data/
 scripts/fmp-api/fmp-data/
 scripts/fmp-api/fmp-logs/
 
-# Jupyter Notebooks (if added later)
-.ipynb_checkpoints/
-*.ipynb
+# YouTube data cache (from testing)
+youtube-data/
+youtube-logs/
+scripts/youtube-api/youtube-data/
+scripts/youtube-api/youtube-logs/
 
-# Testing
-.coverage
-htmlcov/
-.tox/
-.hypothesis/
+# Installed instances (not source)
+.claude/
 
-# Documentation builds
-docs/_build/
-site/
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
-
-# Linux
-*~
-.directory
-.Trash-*
-
-# Personal notes (add your own)
+# Personal notes
 PERSONAL_NOTES.md
 TODO_PRIVATE.md
 scratch/
@@ -135,16 +82,3 @@ scratch/
 *.bak
 *.backup
 backup/
-
-# Node modules (if web interface added later)
-node_modules/
-package-lock.json
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Keep important template files
-!profiles/default/portfolio/portfolio-config.yaml
-!profiles/default/portfolio/open-positions.yaml

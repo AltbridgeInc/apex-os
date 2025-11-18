@@ -129,6 +129,14 @@ if [ -d "$BASE_DIR/scripts/fmp-api" ]; then
     echo "✓ Installed FMP scripts to apex-os/scripts/"
 fi
 
+# Copy YouTube scripts to apex-os/scripts
+if [ -d "$BASE_DIR/scripts/youtube-api" ]; then
+    mkdir -p apex-os/scripts/youtube-api
+    cp -r "$BASE_DIR/scripts/youtube-api/"* apex-os/scripts/youtube-api/ 2>/dev/null || true
+    chmod +x apex-os/scripts/youtube-api/*.sh 2>/dev/null || true
+    echo "✓ Installed YouTube scripts to apex-os/scripts/"
+fi
+
 # Copy test script
 if [ -f "$BASE_DIR/scripts/test-fmp-integration.sh" ]; then
     cp "$BASE_DIR/scripts/test-fmp-integration.sh" apex-os/scripts/ 2>/dev/null || true
@@ -168,7 +176,7 @@ echo "✓ Created logs directory (apex-os/logs/)"
 
 echo ""
 
-# Create .env template if not exists
+# Create or update .env file
 if [ ! -f "apex-os/.env" ]; then
     print_status "Creating .env template..."
     cat > apex-os/.env << ENVEOF
@@ -180,9 +188,16 @@ if [ ! -f "apex-os/.env" ]; then
 # Free tier: 250 requests/day | Paid: 250 requests/minute
 FMP_API_KEY=your_fmp_api_key_here
 
-# YouTube Data API (Optional - for transcript fetching)
+# YouTube Data API v3
 # Get your API key at: https://console.cloud.google.com/apis/credentials
+# Free tier: 10,000 units/day | Search: 100 units | Videos: 1 unit
 YOUTUBE_API_KEY=your_youtube_api_key_here
+
+# Webshare Proxy (Optional - for YouTube transcripts in Docker/cloud environments)
+# Get credentials at: https://www.webshare.io/ (Free tier: 10 proxies, 1GB/month)
+# Only needed if running in Docker/GCP/AWS where YouTube may block transcript access
+WEBSHARE_USERNAME=your_webshare_username
+WEBSHARE_PASSWORD=your_webshare_password
 
 # Data Cache Settings (absolute paths)
 DATA_CACHE_DIR=$PROJECT_DIR/apex-os/data
@@ -196,7 +211,16 @@ ENVEOF
     echo ""
     print_warning "IMPORTANT: Edit apex-os/.env and add your FMP_API_KEY before using data fetching!"
 else
-    print_status "apex-os/.env already exists, skipping template creation"
+    print_status "apex-os/.env already exists, updating paths to absolute..."
+    # Update paths to absolute in existing .env file
+    if grep -q "DATA_CACHE_DIR=apex-os/data" apex-os/.env 2>/dev/null; then
+        sed -i "s|DATA_CACHE_DIR=apex-os/data|DATA_CACHE_DIR=$PROJECT_DIR/apex-os/data|g" apex-os/.env
+        sed -i "s|FMP_CACHE_DIR=apex-os/data/fmp|FMP_CACHE_DIR=$PROJECT_DIR/apex-os/data/fmp|g" apex-os/.env
+        sed -i "s|YOUTUBE_CACHE_DIR=apex-os/data/youtube|YOUTUBE_CACHE_DIR=$PROJECT_DIR/apex-os/data/youtube|g" apex-os/.env
+        echo "✓ Updated .env paths to absolute"
+    else
+        echo "✓ .env paths already absolute or custom - skipping update"
+    fi
 fi
 
 echo ""

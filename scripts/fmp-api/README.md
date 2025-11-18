@@ -66,6 +66,8 @@ All operations use the master script `fmp-fetch.sh`:
 - **fetch-quotes.sh** - Real-time quotes, historical prices, intraday
 - **fetch-earnings.sh** - Transcripts, earnings data, news
 - **fetch-analyst.sh** - Estimates, ratings, price targets
+- **fetch-market-movers.sh** - Market gainers, losers, most active stocks
+- **fetch-technical.sh** - Technical indicators (SMA, EMA, RSI, ADX, Williams, etc.)
 
 ## Categories & Actions
 
@@ -121,6 +123,37 @@ fmp-fetch.sh analyst price-consensus NVDA
 fmp-fetch.sh analyst upgrades-downgrades AAPL
 fmp-fetch.sh analyst all TSLA
 ```
+
+### Market Movers
+
+```bash
+fmp-fetch.sh market gainers
+fmp-fetch.sh market losers
+fmp-fetch.sh market actives
+```
+
+### Technical Indicators
+
+```bash
+# Intraday historical prices
+fmp-fetch.sh technical intraday AAPL 5min
+fmp-fetch.sh technical intraday TSLA 1hour
+
+# Daily historical prices
+fmp-fetch.sh technical daily NVDA
+fmp-fetch.sh technical daily MSFT 2024-01-01 2024-12-31
+
+# Technical indicators
+fmp-fetch.sh technical indicator NVDA sma 20 1day
+fmp-fetch.sh technical indicator TSLA ema 50 1day
+fmp-fetch.sh technical indicator MSFT rsi 14 1hour
+fmp-fetch.sh technical indicator AAPL adx 14 1day
+fmp-fetch.sh technical indicator GOOGL williams 14 1day
+```
+
+**Available indicators**: sma, ema, rsi, adx, williams, wma, dema, tema, standarddeviation
+
+**Timeframes**: 1min, 5min, 15min, 30min, 1hour, 4hour, 1day
 
 ### Bulk Operations
 
